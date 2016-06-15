@@ -1,0 +1,60 @@
+html,body {
+	padding: 0;
+	margin: 0;
+	border: 0 none;
+	border-collapse: collapse;
+	height:100%;
+	display:flex;
+}
+html {
+	width:100%;
+	justify-content:center;
+}
+body {
+	max-width:100%;
+	display:flex;
+	flex-direction:column;
+}
+body > * {
+	margin-top: 2em;
+}
+body > *:last-child() {
+	margin-bottom: 2em;
+}
+
+#storageForm  label {
+	white-space:nowrap;
+}
+#storageFormMessage {
+	background-color:red;
+	color:white;
+	padding: .5em 1em;
+	white-space:pre-line;
+}
+#storageFormMessage:empty {
+	padding:0;
+}
+#storageList-wrapper {
+	overflow:auto;
+}
+
+#backupForm {
+	position:absolute;
+	top:0;
+	left:0;
+	bottom:0;
+	right:0;
+	background-color:rgba(0,0,0,0.6);
+	display:none;
+}
+#backupForm[data-hidden="false"] {
+	display:inline-block;
+}
+#backupForm .content {
+	position:absolute;
+	top:50%;
+	left:50%;
+	transform:translate(-50%,-50%);
+	background-color:white;
+	padding: 1em 2em;
+}
