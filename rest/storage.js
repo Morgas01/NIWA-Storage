@@ -1,3 +1,5 @@
+var BACKUP_REQUEST_TIMEOUT=120000;
+var STORAGE_ROTATION=3;
 
 var SC=µ.shortcut({
 	Promise:"Promise",
@@ -5,7 +7,8 @@ var SC=µ.shortcut({
 	FileUtil:"File.util",
 	FStruct:()=>require("../js/FileStructure"),
 	treeCompare:"NodePatch.treeCompare",
-	crc:"util.crc32"
+	crc:"util.crc32",
+	executeBackup:()=>require("../lib/executeBackup")
 });
 
 var storage_a=require("../storages/A");
@@ -86,12 +89,12 @@ module.exports={
 		if(!storage)
 		{
 			param.status=400;
-			return Promise.reject(`storage ${param.data.name} does not exist`);
+			return Promise.reject(`"storage ${param.data.name} does not exist"`);
 		}
-		else if(backupRequests.has(storage.name))
+		else if(backupRequests.has(storage))
 		{
 			param.status=409;
-			return Promise.reject(`storage ${param.data.name} is busy`);
+			return Promise.reject(`"storage ${param.data.name} is busy"`);
 		}
 		else
 		{
@@ -110,11 +113,13 @@ module.exports={
 					)
 				};
 				backupTask.token=SC.crc(JSON.stringify(backupTask)+Date.now());
+				backupTask.normalizedChanges=backupTask.changes.map(s=>({name:s.name,changes:normalizeComparrison(s.changes)}));
 				backupRequests.set(storage,backupTask);
+				backupTask.timer=setTimeout(function(){backupRequests.delete(storage)},BACKUP_REQUEST_TIMEOUT);
 				
 				return {
 					token:backupTask.token,
-					changes:backupTask.changes.map(s=>({name:s.name,changes:normalizeComparrison(s.changes)}))
+					changes:backupTask.normalizedChanges
 				}
 			}).catch(µ.logger.error);
 		}
@@ -137,6 +142,38 @@ module.exports={
 		else
 		{
 			backupTask.token=BACKUP_RUNNING;
+			clearTimeout(backupTask.timer);
+			SC.executeBackup(storage,backupTask.normalizedChanges.slice(1))
+			.then(function(result)
+			{
+				µ.logger.info(result,"finished backup")
+			},
+			function(result)
+			{
+				µ.logger.error(result,"failed backup")
+			});
+			return "ok";
+		}
+	},
+	cancelBackup:function(param)
+	{
+		
+		var storage=storages.get(param.data.name);
+		var backupTask=backupRequests.get(storage);
+		if(!storage)
+		{
+			param.status=400;
+			return Promise.reject(`storage ${param.data.name} does not exist`);
+		}
+		else if(!backupTask||backupTask.token!=param.data.token)
+		{
+			param.status=401;
+			return Promise.reject("401 Unauthorized");
+		}
+		else
+		{
+			clearTimeout(backupTask.timer);
+			return backupRequests.delete(storage);
 		}
 	}
 };
@@ -146,7 +183,7 @@ var saveStorage=function(storage)
 	.exists()
 	.then(function()
 	{
-		return SC.FileUtil.rotateFile(this,3);
+		return SC.FileUtil.rotateFile(this,STORAGE_ROTATION);
 	},µ.constantFunctions.pass)
 	.then(function()
 	{
@@ -173,8 +210,8 @@ var normalizeComparrison=function(compare)
 			}
 			else a.push(f);
 			return a;
-		},[]).map(f=>f.getPath()).sort(),
-		changed:compare.changed.filter(c=>c.fresh.isFile).map(c=>c.fresh.getPath()).sort(),
+		},[]).map(f=>f.getPath().split("/").slice(2).join("/")).sort(),
+		changed:compare.changed.filter(c=>c.fresh.isFile).map(c=>c.fresh.getPath().split("/").slice(2).join("/")).sort(),
 		deleted:compare.deleted.map(c=>c.old).reduce((a,f)=>
 		{
 			if(!f.isFile)
@@ -183,6 +220,6 @@ var normalizeComparrison=function(compare)
 			}
 			else a.push(f);
 			return a;
-		},[]).map(f=>f.getPath()).sort(),
+		},[]).map(f=>f.getPath().split("/").slice(2).join("/")).sort(),
 	};
 };

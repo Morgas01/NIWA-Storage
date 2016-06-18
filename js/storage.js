@@ -2,7 +2,8 @@
 	
 	SC=SC({
 		gIn:"getInputValues",
-		rs:"request"
+		rs:"request",
+		dialog:"ui.Dialog"
 	});
 	
 	var storageForm=document.getElementById("storageForm");
@@ -77,16 +78,18 @@
 				})
 				.then(function(backupTask)
 				{
-					var dialog=document.createElement("div");
-					dialog.classList.add("dialog");
-					dialog.innerHTML=String.raw`
-						<table>
+					var dataString=JSON.stringify({
+						name:backupTask.changes[0].name,
+						token:backupTask.token
+					});
+					var dialog=SC.dialog(String.raw`
+						<table class="backupTable">
 							<thead>
 								<tr>
 									<th>name</th>
-									<th>added</th>
-									<th>changed</th>
-									<th>removed</th>
+									<th>add</th>
+									<th>change</th>
+									<th>remove</th>
 								</tr>
 							</thead>
 							<tbody>
@@ -112,10 +115,24 @@
 								`).join("")}
 							</tbody>
 						</table>
-					`;
-					document.body.appendChild(dialog);
-				},//TODO
-				µ.logger.error);
+					`,[function Ok (dialog)
+					{
+						SC.rs({
+							url:"rest/storage/executeBackup",
+							data:dataString
+						}).catch(param=>SC.dialog(param.response));
+						dialog.remove();
+					},
+					function Cancel (dialog)
+					{
+						SC.rs({
+							url:"rest/storage/cancelBackup",
+							data:dataString
+						});
+						dialog.remove();
+					}]);
+				},
+				param=>SC.dialog(param.response));
 				break;
 			default:
 				µ.logger.error(`unknown action ${action} from ${id}`);

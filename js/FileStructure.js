@@ -52,7 +52,7 @@
 		return SC.File.stringToFile(file).stat()
 		.then(function(stats)
 		{
-			var rtn=new FSTRUC(this.getFileName(),stats);
+			var rtn=new FSTRUC(this.getName(),stats);
 			if(!rtn.isFile)
 			{
 				return this.listFiles()

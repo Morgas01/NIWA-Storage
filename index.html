@@ -15,37 +15,42 @@
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.object.goPath.js"></script>
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.object.inputValues.js"></script>
 		<script type="text/javascript" defer="defer" src="js/storage.js"></script>
+		
+		<script type="text/javascript" defer="defer" src="js/dialog.js"></script>
+		<link rel="stylesheet" href="css/dialog.css">
 	</head>
 
 	<body>
-		<form id="storageForm">
-			<label><span>Name</span><input type="text" name="name" required></label>
-			<label><span>Path</span><input type="text" name="path" required></label>
-			<button>add</button>
-			<div id="storageFormMessage"></div>
-		</form>
-		<div id="storageList-wrapper">
-			<table>
-				<thead>
-					<tr>
-						<th>Name</th>
-						<th>Path</th>
-						<th>backups</th>
-						<th>Actions</th>
-				</thead>
-				<tbody id="storageList">
-				</tbody>
-			</table>
-			
-			<form id="backupForm" data-hidden="true">
-				<div class="content">
-					<input type="hidden" name="name">
-					<label><span>Path</span><input type="text" name="path" required></label>
-					<button>add</button>
-					<button type="reset">cancel</button>
-					<div id="backupFormMessage"></div>
-				</div>
+		<div class="main">
+			<form id="storageForm">
+				<label><span>Name</span><input type="text" name="name" required></label>
+				<label><span>Path</span><input type="text" name="path" required></label>
+				<button>add</button>
+				<div id="storageFormMessage"></div>
 			</form>
+			<div id="storageList-wrapper">
+				<table>
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Path</th>
+							<th>backups</th>
+							<th>Actions</th>
+					</thead>
+					<tbody id="storageList">
+					</tbody>
+				</table>
+				
+				<form id="backupForm" data-hidden="true">
+					<div class="content">
+						<input type="hidden" name="name">
+						<label><span>Path</span><input type="text" name="path" required></label>
+						<button>add</button>
+						<button type="reset">cancel</button>
+						<div id="backupFormMessage"></div>
+					</div>
+				</form>
+			</div>
 		</div>
 	</body>
 
