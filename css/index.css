@@ -23,6 +23,7 @@ body {
 	margin-bottom: 2em;
 }
 
+
 #storageForm  label {
 	white-space:nowrap;
 }
@@ -35,9 +36,25 @@ body {
 #storageFormMessage:empty {
 	padding:0;
 }
+
+
 #storageList-wrapper {
 	overflow:auto;
 }
+#storageTable {
+    border-collapse: collapse;
+}
+#storageTable th {
+	border-width:1px;
+}
+#storageTable td {
+	border-width: 2px 1px;
+}
+#storageTable th, #storageTable td {
+    border-style:solid;
+    padding: .25em .5em
+}
+
 
 #backupForm {
 	position:absolute;
@@ -59,6 +76,7 @@ body {
 	background-color:white;
 	padding: 1em 2em;
 }
+
 
 .backupTable {
 	border-collapse:collapse;

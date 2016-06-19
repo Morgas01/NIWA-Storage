@@ -8,9 +8,11 @@ var SC=µ.shortcut({
 	FStruct:()=>require("../js/FileStructure"),
 	treeCompare:"NodePatch.treeCompare",
 	crc:"util.crc32",
-	executeBackup:()=>require("../lib/executeBackup")
+	executeBackup:()=>require("../lib/executeBackup"),
+	it:"iterate",
+	itAs:"iterateAsync"
 });
-
+//*
 var storage_a=require("../storages/A");
 var mapStructure=function(s)
 {
@@ -19,8 +21,10 @@ var mapStructure=function(s)
 	return rtn;
 }
 storage_a.structure=mapStructure(storage_a.structure);
-var storages=new Map(/**/[["A",storage_a]]/**/);
-
+var storages=new Map([["A",storage_a]]);
+/*/
+var storages=new Map();
+//*/
 var backupRequests=new Map();
 var BACKUP_RUNNING={};
 
@@ -39,7 +43,7 @@ module.exports={
 			if(msg.length==0)
 			{
 				param.data.path=this.getAbsolutePath();
-				param.data.backups=[];
+				param.data.backups={};
 				storages.set(param.data.name,param.data);
 				return SC.FStruct.get(param.data.path).then(function(structure)
 				{
@@ -62,18 +66,23 @@ module.exports={
 	},
 	addBackup:function(param)
 	{
-		var storage=storages.get(param.data.name);
+		var storage=storages.get(param.data.id);
 		if(!storage)
 		{
 			param.status=400;
-			return Promise.reject(`storage ${param.data.name} does not exist`);
+			return Promise.reject(`storage ${param.data.id} does not exist`);
+		}
+		else if (param.data.name in storage.backups)
+		{
+			param.status=400;
+			return Promise.reject(`storage ${param.data.id} does already has backup with this name (${param.data.name})`);
 		}
 		else
 		{
 			return new SC.File(param.data.path).exists()
 			.then(function()
 			{
-				storage.backups.push(this.getAbsolutePath());
+				storage.backups[param.data.name]=this.getAbsolutePath();
 				return saveStorage(storage);
 			},
 			function()
@@ -85,54 +94,65 @@ module.exports={
 	},
 	doBackup:function(param)
 	{
-		var storage=storages.get(param.data.name);
+		var storage=storages.get(param.data.id);
 		if(!storage)
 		{
 			param.status=400;
-			return Promise.reject(`"storage ${param.data.name} does not exist"`);
+			return Promise.reject(`"storage ${param.data.id} does not exist"`);
 		}
 		else if(backupRequests.has(storage))
 		{
 			param.status=409;
-			return Promise.reject(`"storage ${param.data.name} is busy"`);
+			return Promise.reject(`"storage ${param.data.id} is busy"`);
 		}
 		else
 		{
-			return new SC.Promise([storage.path].concat(storage.backups).map(SC.FStruct.get))
-			.then(function(structureNow)
+			var fileStructures={
+				storage:null,
+				backupStructures:{}
+			};
+			return Promise.all([
+				SC.FStruct.get(storage.path).then(c=>fileStructures.storage=c),
+				SC.itAs(storage.backups,(k,p)=>SC.FStruct.get(p).then(c=>fileStructures.backupStructures[k]=c))
+			])
+			.then(function()
 			{
+				var changes={
+					storage:SC.treeCompare(storage.structure,fileStructures.storage,"name",compareFileStructure),
+					backupChanges:{}
+				}
+				SC.it(fileStructures.backupStructures,(k,c)=>changes.backupChanges[k]=SC.treeCompare(c,fileStructures.storage,"name",compareFileStructure));
 				var backupTask={
-					changes:[{
-						name:storage.name,
-						changes:SC.treeCompare(storage.structure,structureNow,"name",compareFileStructure)
-					}].concat(Array.prototype.slice.call(arguments,1)
-						.map((s,i)=>({
-							name:storage.backups[i],
-							changes:SC.treeCompare(s,structureNow,"name",compareFileStructure)
-						}))
-					)
+					changes:changes,
+					token:SC.crc(JSON.stringify(changes)+Date.now()),
+					normalizedChanges:{
+						storageName:storage.name,
+						storage:normalizeChanges(changes.storage),
+						backupChanges:{}	
+					}
 				};
-				backupTask.token=SC.crc(JSON.stringify(backupTask)+Date.now());
-				backupTask.normalizedChanges=backupTask.changes.map(s=>({name:s.name,changes:normalizeComparrison(s.changes)}));
+				SC.it(changes.backupChanges,(k,c)=>backupTask.normalizedChanges.backupChanges[k]=normalizeChanges(c));
 				backupRequests.set(storage,backupTask);
 				backupTask.timer=setTimeout(function(){backupRequests.delete(storage)},BACKUP_REQUEST_TIMEOUT);
+				backupTask.timer.unref();
 				
 				return {
+					id:storage.name,
 					token:backupTask.token,
 					changes:backupTask.normalizedChanges
-				}
+				};
 			}).catch(µ.logger.error);
 		}
 	},
 	executeBackup:function(param)
 	{
 		
-		var storage=storages.get(param.data.name);
+		var storage=storages.get(param.data.id);
 		var backupTask=backupRequests.get(storage);
 		if(!storage)
 		{
 			param.status=400;
-			return Promise.reject(`storage ${param.data.name} does not exist`);
+			return Promise.reject(`storage ${param.data.id} does not exist`);
 		}
 		else if(!backupTask||backupTask.token!=param.data.token)
 		{
@@ -143,7 +163,7 @@ module.exports={
 		{
 			backupTask.token=BACKUP_RUNNING;
 			clearTimeout(backupTask.timer);
-			SC.executeBackup(storage,backupTask.normalizedChanges.slice(1))
+			SC.executeBackup(storage,backupTask.normalizedChanges.backupChanges)
 			.then(function(result)
 			{
 				µ.logger.info(result,"finished backup")
@@ -158,12 +178,12 @@ module.exports={
 	cancelBackup:function(param)
 	{
 		
-		var storage=storages.get(param.data.name);
+		var storage=storages.get(param.data.id);
 		var backupTask=backupRequests.get(storage);
 		if(!storage)
 		{
 			param.status=400;
-			return Promise.reject(`storage ${param.data.name} does not exist`);
+			return Promise.reject(`storage ${param.data.id} does not exist`);
 		}
 		else if(!backupTask||backupTask.token!=param.data.token)
 		{
@@ -199,7 +219,7 @@ var compareFileStructure=function(old,fresh)
 	&&		""+old.ctime	== ""+fresh.ctime
 	*/;
 };
-var normalizeComparrison=function(compare)
+var normalizeChanges=function(compare)
 {
 	return {
 		created:compare.created.map(c=>c.fresh).reduce((a,f)=>

@@ -36,16 +36,23 @@
 	{
 		SC.rs.json("rest/storage/list").then(function(storages)
 		{
-			storageList.innerHTML=storages.map(storage=>
-			String.raw`<tr data-storage-id="${storage.name}">
-				<td class="name">${storage.name}</td>
-				<td class="path">${storage.path}</td>
-				<td class="backups">${storage.backups.map(b=>String.raw`<div>${b}</div>`).join("\n")}</td>
-				<td class="actions">
-					<button data-action="addBackup">add Backup</button>
-					<button data-action="doBackup">do backup</button>
-				</td>
-			</tr>`).join("\n");
+			storageList.innerHTML=storages.map(storage=>Object.keys(storage.backups).map((b,i,a)=>
+			String.raw`
+<tr ${i!=0?"":String.raw`data-storage-id="${storage.name}"`}>
+	${i!=0?"":String.raw`
+	<td  ${i!=0?"":String.raw`rowspan="${a.length}"`} class="name">${storage.name}</td>
+	<td  ${i!=0?"":String.raw`rowspan="${a.length}"`} class="path">${storage.path}</td>
+	`}
+	<td class="backupName">${b}</td>
+	<td class="backupPath">${storage.backups[b]}</td>
+	${i!=0?"":String.raw`
+	<td  ${i!=0?"":String.raw`rowspan="${a.length}"`} class="actions">
+		<button data-action="addBackup">add Backup</button>
+		<button data-action="doBackup">do backup</button>
+	</td>
+	`}
+</tr>`
+			).join("")).join("");
 		});
 	};
 	
@@ -59,63 +66,109 @@
 		}
 	});
 	
-	var backupForm=document.getElementById("backupForm");
-	var backupFormMessage=document.getElementById("backupFormMessage");
-	var backupFormName=document.querySelector("#backupForm [name=name]");
 	var doAction=function(action,id)
 	{
 		switch(action)
 		{
 			case "addBackup":
-			
-				backupForm.dataset.hidden=false;
-				backupFormName.value=id;
+				var backupForm;
+				var dialog=SC.dialog(String.raw
+`
+<form>
+		<input type="hidden" name="id" value="${id}">
+		<label><span>Name</span><input type="text" name="name" required></label>
+		<label><span>Path</span><input type="text" name="path" required></label>
+		<div id="backupFormMessage"></div>
+</form>
+`				,
+				[
+					function Ok()
+					{
+						backupFormMessage.textContent="";
+						SC.rs({
+							url:"rest/storage/addBackup",
+							contentType:"application/json",
+							data:JSON.stringify(SC.gIn(backupForm,null,true))
+						}).then(function()
+						{
+							dialog.remove();
+							updateList();
+						},function(error)
+						{
+							backupFormMessage.textContent=error.response;
+						});
+					},
+					function Cancel(dialog)
+					{
+						dialog.remove();
+					}
+				]);
+				backupForm=dialog.querySelector("form");
 				break;
 			case "doBackup":
 				SC.rs.json({
 					url:"rest/storage/doBackup",
-					data:JSON.stringify({name:id})
+					data:JSON.stringify({id:id})
 				})
 				.then(function(backupTask)
 				{
 					var dataString=JSON.stringify({
-						name:backupTask.changes[0].name,
+						id:backupTask.id,
 						token:backupTask.token
 					});
 					var dialog=SC.dialog(String.raw`
-						<table class="backupTable">
-							<thead>
-								<tr>
-									<th>name</th>
-									<th>add</th>
-									<th>change</th>
-									<th>remove</th>
-								</tr>
-							</thead>
-							<tbody>
-								${backupTask.changes.map(entry=>String.raw`
-								<tr>
-									<td>${entry.name}</td>
-									<td>
-										${entry.changes.created.map(f=>String.raw`
-										<div>${f}</div>
-										`).join("")}
-									</td>
-									<td>
-										${entry.changes.changed.map(f=>String.raw`
-										<div>${f}</div>
-										`).join("")}
-									</td>
-									<td>
-										${entry.changes.deleted.map(f=>String.raw`
-										<div>${f}</div>
-										`).join("")}
-									</td>
-								</tr>
-								`).join("")}
-							</tbody>
-						</table>
-					`,[function Ok (dialog)
+<table class="backupTable">
+	<thead>
+		<tr>
+			<th>name</th>
+			<th>add</th>
+			<th>change</th>
+			<th>remove</th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td>${backupTask.changes.storageName}</td>
+			<td>
+				${backupTask.changes.storage.created.map(f=>String.raw
+				`<div>${f}</div>
+				`).join("")}
+			</td>
+			<td>
+				${backupTask.changes.storage.changed.map(f=>String.raw
+				`<div>${f}</div>
+				`).join("")}
+			</td>
+			<td>
+				${backupTask.changes.storage.deleted.map(f=>String.raw
+				`<div>${f}</div>
+				`).join("")}
+			</td>
+		</tr>
+		${Object.keys(backupTask.changes.backupChanges).map(name=>String.raw`
+		<tr>
+			<td>${name}</td>
+			<td>
+				${backupTask.changes.backupChanges[name].created.map(f=>String.raw
+				`<div>${f}</div>
+				`).join("")}
+			</td>
+			<td>
+				${backupTask.changes.backupChanges[name].changed.map(f=>String.raw
+				`<div>${f}</div>
+				`).join("")}
+			</td>
+			<td>
+				${backupTask.changes.backupChanges[name].deleted.map(f=>String.raw
+				`<div>${f}</div>
+				`).join("")}
+			</td>
+		</tr>
+		`).join("")}
+	</tbody>
+</table>
+`					,
+					[function Ok (dialog)
 					{
 						SC.rs({
 							url:"rest/storage/executeBackup",
@@ -138,34 +191,6 @@
 				µ.logger.error(`unknown action ${action} from ${id}`);
 		}
 	};
-	
-	backupForm.addEventListener("submit",function(event)
-	{
-		backupFormMessage.textContent="";
-		SC.rs({
-			url:"rest/storage/addBackup",
-			contentType:"application/json",
-			data:JSON.stringify(SC.gIn(backupForm.querySelectorAll("input"),null,true))
-		}).then(function()
-		{
-			backupForm.dataset.hidden=true;
-			backupForm.reset();
-			updateList();
-		},function(error)
-		{
-			backupFormMessage.textContent=error.response;
-		});
-		event.preventDefault();
-		return false;
-	});
-	backupForm.addEventListener("reset",function(event)
-	{
-		backupFormMessage.textContent="";
-	});
-	backupForm.querySelector("[type=reset]").addEventListener("click",function()
-	{
-		backupForm.dataset.hidden=true;
-	});
 	
 	updateList();
 	

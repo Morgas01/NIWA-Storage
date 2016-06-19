@@ -24,7 +24,7 @@
 			{
 				event.stopPropagation();
 				event.preventDefault();
-				buttons[event.target.dataset.index](dialog);
+				buttons[event.target.dataset.index](dialog,event);
 			}
 		})
 		

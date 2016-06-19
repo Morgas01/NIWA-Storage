@@ -29,27 +29,22 @@
 				<div id="storageFormMessage"></div>
 			</form>
 			<div id="storageList-wrapper">
-				<table>
+				<table id="storageTable">
 					<thead>
+						<tr>
+							<th rowspan="2">Name</th>
+							<th rowspan="2">Path</th>
+							<th colspan="2">backups</th>
+							<th rowspan="2">Actions</th>
+						</tr>
 						<tr>
 							<th>Name</th>
 							<th>Path</th>
-							<th>backups</th>
-							<th>Actions</th>
+						</tr>
 					</thead>
 					<tbody id="storageList">
 					</tbody>
 				</table>
-				
-				<form id="backupForm" data-hidden="true">
-					<div class="content">
-						<input type="hidden" name="name">
-						<label><span>Path</span><input type="text" name="path" required></label>
-						<button>add</button>
-						<button type="reset">cancel</button>
-						<div id="backupFormMessage"></div>
-					</div>
-				</form>
 			</div>
 		</div>
 	</body>
