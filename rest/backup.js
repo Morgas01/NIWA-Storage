@@ -7,8 +7,10 @@ var SC=µ.shortcut({
 	treeCompare:"NodePatch.treeCompare",
 	crc:"util.crc32",
 	it:"iterate",
-	itAs:"iterateAsync"
+	itAs:"iterateAsync",
+	Storage:require.bind(null,"../js/storage")
 });
+var storages=require("../lib/storageManager");
 
 var backupRequests=new Map();
 var BACKUP_RUNNING={};
@@ -17,11 +19,7 @@ var BACKUP_RUNNING={};
 var compareFileStructure=function(old,fresh)
 {
 	return	old.size	== fresh.size
-	&&		old.isFile	== fresh.isFile
-	/*&&		""+old.atime	== ""+fresh.atime
-	&&		""+old.mtime	== ""+fresh.mtime
-	&&		""+old.ctime	== ""+fresh.ctime
-	*/;
+	&&		old.isFile	== fresh.isFile;
 };
 var normalizeChanges=function(compare)
 {
@@ -52,67 +50,67 @@ var normalizeChanges=function(compare)
 module.exports={
 	request:function(param)
 	{
-		var storage=storages.get(param.data.id);
-		if(!storage)
+		return storages.load(SC.Storage,{ID:param.data.id})
+		.then(function(result)
 		{
-			param.status=400;
-			return Promise.reject(`"storage ${param.data.id} does not exist"`);
-		}
-		else if(backupRequests.has(storage))
-		{
-			param.status=409;
-			return Promise.reject(`"storage ${param.data.id} is busy"`);
-		}
-		else
-		{
-			var fileStructures={
-				storage:null,
-				backupStructures:{}
-			};
-			return Promise.all([
-				SC.FStruct.get(storage.path).then(c=>fileStructures.storage=c),
-				SC.itAs(storage.backups,(k,p)=>SC.FStruct.get(p).then(c=>fileStructures.backupStructures[k]=c))
-			])
-			.then(function()
+			var storage=result[0];
+			if(!storage)
 			{
-				var changes={
-					storage:SC.treeCompare(storage.structure,fileStructures.storage,"name",compareFileStructure),
-					backupChanges:{}
-				}
-				SC.it(fileStructures.backupStructures,(k,c)=>changes.backupChanges[k]=SC.treeCompare(c,fileStructures.storage,"name",compareFileStructure));
-				var backupTask={
-					changes:changes,
-					token:SC.crc(JSON.stringify(changes)+Date.now()),
-					normalizedChanges:{
-						storageName:storage.name,
-						storage:normalizeChanges(changes.storage),
-						backupChanges:{}	
+				param.status=400;
+				return Promise.reject(`"storage ${param.data.id} does not exist"`);
+			}
+			else if(backupRequests.has(storage.ID))
+			{
+				param.status=409;
+				return Promise.reject(`"storage ${param.data.id} is busy"`);
+			}
+			else
+			{
+				var fileStructures={
+					storage:null,
+					backupStructures:{}
+				};
+				return Promise.all([
+					SC.FStruct.get(storage.path).then(c=>fileStructures.storage=c),
+					SC.itAs(storage.backups,(k,p)=>SC.FStruct.get(p).then(c=>fileStructures.backupStructures[k]=c)).catch(r=>Promise.reject(r.pop()))
+				])
+				.then(function()
+				{
+					var changes={
+						storage:SC.treeCompare(storage.structure,fileStructures.storage,"name",compareFileStructure),
+						backupChanges:{}
 					}
-				};
-				SC.it(changes.backupChanges,(k,c)=>backupTask.normalizedChanges.backupChanges[k]=normalizeChanges(c));
-				backupRequests.set(storage,backupTask);
-				backupTask.timer=setTimeout(function(){backupRequests.delete(storage)},BACKUP_REQUEST_TIMEOUT);
-				backupTask.timer.unref();
-				
-				return {
-					id:storage.name,
-					token:backupTask.token,
-					changes:backupTask.normalizedChanges
-				};
-			}).catch(µ.logger.error);
-		}
+					SC.it(fileStructures.backupStructures,(k,c)=>changes.backupChanges[k]=SC.treeCompare(c,fileStructures.storage,"name",compareFileStructure));
+					var backupTask={
+						storage:storage,
+						storageStructure:fileStructures.storage,
+						changes:changes,
+						token:SC.crc(JSON.stringify(changes)+Date.now()),
+						normalizedChanges:{
+							storageName:storage.name,
+							storage:normalizeChanges(changes.storage),
+							backupChanges:{}	
+						}
+					};
+					SC.it(changes.backupChanges,(k,c)=>backupTask.normalizedChanges.backupChanges[k]=normalizeChanges(c));
+					backupRequests.set(storage.ID,backupTask);
+					backupTask.timer=setTimeout(function(){backupRequests.delete(storage.ID)},BACKUP_REQUEST_TIMEOUT);
+					backupTask.timer.unref();
+					
+					return {
+						id:storage.ID,
+						token:backupTask.token,
+						changes:backupTask.normalizedChanges
+					};
+				});
+			}
+		});
 	},
 	confirm:function(param)
 	{
 		
-		var storage=storages.get(param.data.id);
-		var backupTask=backupRequests.get(storage);
-		if(!storage)
-		{
-			param.status=400;
-			return Promise.reject(`storage ${param.data.id} does not exist`);
-		}
-		else if(!backupTask||backupTask.token!=param.data.token)
+		var backupTask=backupRequests.get(param.data.id);
+		if(!backupTask||backupTask.token!=param.data.token)
 		{
 			param.status=401;
 			return Promise.reject("401 Unauthorized");
@@ -121,29 +119,28 @@ module.exports={
 		{
 			backupTask.token=BACKUP_RUNNING;
 			clearTimeout(backupTask.timer);
-			executeBackup(storage,backupTask.normalizedChanges.backupChanges)
-			.then(function(result)
+			
+			storages.load(SC.Storage,{ID:param.data.id}).then(function(result)
 			{
-				µ.logger.info(result,"finished backup")
-			},
-			function(result)
-			{
-				µ.logger.error(result,"failed backup")
+				if(result.length>=0)
+				{
+					result[0].structure=backupTask.storageStructure;
+					storages.save(result[0]);
+				}
 			});
-			return "ok";
+			
+			var backupPromise=executeBackup(backupTask.storage,backupTask.normalizedChanges.backupChanges);
+			backupPromise.always(function()
+			{
+				backupRequests.delete(param.data.id);
+			})
+			return backupPromise;
 		}
 	},
 	cancel:function(param)
 	{
-		
-		var storage=storages.get(param.data.id);
-		var backupTask=backupRequests.get(storage);
-		if(!storage)
-		{
-			param.status=400;
-			return Promise.reject(`storage ${param.data.id} does not exist`);
-		}
-		else if(!backupTask||backupTask.token!=param.data.token)
+		var backupTask=backupRequests.get(param.data.id);
+		if(!backupTask||backupTask.token!=param.data.token)
 		{
 			param.status=401;
 			return Promise.reject("401 Unauthorized");
@@ -151,7 +148,7 @@ module.exports={
 		else
 		{
 			clearTimeout(backupTask.timer);
-			return backupRequests.delete(storage);
+			return backupRequests.delete(param.data.id);
 		}
 	}
 };

@@ -62,7 +62,7 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 		{
 			var item=event.target;
 			while(!("storageId" in item.dataset))item=item.parentNode;
-			doAction(event.target.dataset.action,item.dataset.storageId);
+			doAction(event.target.dataset.action,parseInt(item.dataset.storageId,10));
 		}
 	});
 	
@@ -172,10 +172,11 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 `					,
 					[function Ok (dialog)
 					{
-						SC.rs({
+						SC.rs.json({
 							url:"rest/backup/confirm",
 							data:dataString
-						}).catch(param=>SC.dialog(param.response));
+						}).catch(param=>param.response)
+						.then(backupResponse);
 						dialog.remove();
 					},
 					function Cancel (dialog)
@@ -187,12 +188,20 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 						dialog.remove();
 					}]);
 				},
-				param=>SC.dialog(param.response));
+				param=>backupResponse(param.response));
 				break;
 			default:
 				µ.logger.error(`unknown action ${action} from ${id}`);
 		}
 	};
+	
+	var backupResponse=function(response)
+	{
+		µ.logger.info(response);
+		if(!(response instanceof String)) response=JSON.stringify(response,null,"\t");
+		var responseDialog=SC.dialog(response);
+		responseDialog.classList.add("backupResponse");
+	}
 	
 	updateList();
 	
