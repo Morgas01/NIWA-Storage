@@ -25,8 +25,6 @@ module.exports={
 				return new SC.File(param.data.path).exists()
 				.then(function()
 				{
-						console.log("add 2");
-					console.log(msg);
 					if(msg.length==0)
 					{
 						param.data.path=this.getAbsolutePath();
@@ -63,7 +61,6 @@ module.exports={
 		return storages.load(SC.Storage,{ID:param.data.id})
 		.then(function(result)
 		{
-			console.log(result);
 			var storage=result[0];
 			if(!storage)
 			{

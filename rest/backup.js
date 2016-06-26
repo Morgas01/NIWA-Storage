@@ -178,7 +178,6 @@ var executeBackup=function(storage,changes)
 			return outputFolder.clone().changePath(path).remove()
 			.then(function()
 			{
-				console.log(arguments);
 				µ.logger.info("finished delete "+path);
 				rtn.success=true;
 				return rtn

@@ -43,10 +43,10 @@
 				`);
 				return String.raw`
 <tr data-storage-id="${storage.ID}">
-	<td  rowspan="${backups.length}" class="name">${storage.name}</td>
-	<td  rowspan="${backups.length}" class="path">${storage.path}</td>
+	<td  ${backups.length?'rowspan="'+backups.length+'"':''} class="name">${storage.name}</td>
+	<td  ${backups.length?'rowspan="'+backups.length+'"':''} class="path">${storage.path}</td>
 	${backups[0]||String.raw`<td></td><td></td>`}
-	<td  rowspan="${backups.length}" class="actions">
+	<td  ${backups.length?'rowspan="'+backups.length+'"':''} class="actions">
 		<button data-action="addBackup">add Backup</button>
 		<button data-action="doBackup">do backup</button>
 	</td>
