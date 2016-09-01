@@ -17,8 +17,31 @@ module.exports={
 		}
 		else
 		{
+			if(storages.has(param.data.name))
+			{
+				param.status=400;
+				return "Name already in use";
+			}
+			else
+			{
+				return new SC.File(param.data.path).exists()
+				.then(function()
+				{
+					param.data.path=this.getAbsolutePath();
+					return SC.FStruct.get(param.data.path).then(function(structure)
+					{
+						param.data.structure=structure;
+						return storages.save(new SC.Storage(param.data));
+					});
+				},
+				function()
+				{
+					param.status=400;
+					return "path does not exists";
+				});
+			}
 			var msg=[];
-			return storages.load(SC.Storage,{name:param.data.name})
+			return storages.get(param.data.name)
 			.then(function(results)
 			{
 				if(results.length>0) msg.push("Name already in use");
@@ -54,38 +77,34 @@ module.exports={
 	},
 	list:function()
 	{
-		return storages.load(SC.Storage,{},"name");
+		return storages.getAll();
 	},
 	addBackup:function(param)
 	{
-		return storages.load(SC.Storage,{ID:param.data.id})
-		.then(function(result)
+		var storage=storages.get(param.data.id)
+		if(!storage)
 		{
-			var storage=result[0];
-			if(!storage)
+			param.status=400;
+			return Promise.reject(`storage ${param.data.id} does not exist`);
+		}
+		else if (param.data.name in storage.backups)
+		{
+			param.status=400;
+			return Promise.reject(`storage ${param.data.id} does already has backup with this name (${param.data.name})`);
+		}
+		else
+		{
+			return new SC.File(param.data.path).exists()
+			.then(function()
+			{
+				storage.backups[param.data.name]=this.getAbsolutePath();
+				return storages.save(storage);
+			},
+			function()
 			{
 				param.status=400;
-				return Promise.reject(`storage ${param.data.id} does not exist`);
-			}
-			else if (param.data.name in storage.backups)
-			{
-				param.status=400;
-				return Promise.reject(`storage ${param.data.id} does already has backup with this name (${param.data.name})`);
-			}
-			else
-			{
-				return new SC.File(param.data.path).exists()
-				.then(function()
-				{
-					storage.backups[param.data.name]=this.getAbsolutePath();
-					return storages.save([storage]);
-				},
-				function()
-				{
-					param.status=400;
-					return Promise.reject("path does not exists");
-				});
-			}
-		});
+				return Promise.reject("path does not exists");
+			});
+		}
 	}
 };

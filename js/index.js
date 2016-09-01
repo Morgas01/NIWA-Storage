@@ -1,11 +1,11 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	
+
 	SC=SC({
 		gIn:"getInputValues",
 		rs:"request",
 		dialog:"ui.Dialog"
 	});
-	
+
 	var storageForm=document.getElementById("storageForm");
 	var storageFormMessage=document.getElementById("storageFormMessage");
 	storageForm.addEventListener("submit",function(event)
@@ -30,7 +30,7 @@
 	{
 		storageFormMessage.textContent="";
 	});
-	
+
 	var storageList=document.getElementById("storageList");
 	var updateList=function()
 	{
@@ -42,7 +42,7 @@
 					<td class="backupPath">${storage.backups[b]}</td>
 				`);
 				return String.raw`
-<tr data-storage-id="${storage.ID}">
+<tr data-storage-id="${storage.name}">
 	<td  ${backups.length?'rowspan="'+backups.length+'"':''} class="name">${storage.name}</td>
 	<td  ${backups.length?'rowspan="'+backups.length+'"':''} class="path">${storage.path}</td>
 	${backups[0]||String.raw`<td></td><td></td>`}
@@ -55,17 +55,17 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 			}).join("");
 		});
 	};
-	
+
 	storageList.addEventListener("click",function(event)
 	{
 		if(event.target.dataset.action)
 		{
 			var item=event.target;
 			while(!("storageId" in item.dataset))item=item.parentNode;
-			doAction(event.target.dataset.action,parseInt(item.dataset.storageId,10));
+			doAction(event.target.dataset.action,item.dataset.storageId);
 		}
 	});
-	
+
 	var doAction=function(action,id)
 	{
 		switch(action)
@@ -86,7 +86,6 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 					{
 						backupFormMessage.textContent="";
 						var data=SC.gIn(backupForm,null,true);
-						data.id=parseInt(data.id,10);
 						SC.rs({
 							url:"rest/storage/addBackup",
 							contentType:"application/json",
@@ -115,7 +114,7 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 				.then(function(backupTask)
 				{
 					var dataString=JSON.stringify({
-						id:backupTask.id,
+						id:id,
 						token:backupTask.token
 					});
 					var dialog=SC.dialog(String.raw`
@@ -194,7 +193,7 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 				µ.logger.error(`unknown action ${action} from ${id}`);
 		}
 	};
-	
+
 	var backupResponse=function(response)
 	{
 		µ.logger.info(response);
@@ -202,7 +201,7 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 		var responseDialog=SC.dialog(response);
 		responseDialog.classList.add("backupResponse");
 	}
-	
+
 	updateList();
-	
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

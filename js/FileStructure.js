@@ -1,22 +1,21 @@
 (function(µ,SMOD,GMOD,HMOD,SC){
-	
+
 	var NodePatch=GMOD("NodePatch");
-	
+
 	SC=SC({
 		File:"File"
 	});
-	
+
 	var FSTRUC=µ.Class(NodePatch.Basic,{
 		init:function(name,fsStats)
 		{
 			this.mega();
-			
+
 			this.name=name;
 			this.isFile=typeof fsStats.isFile=="function"?fsStats.isFile():fsStats.isFile;
 			this.size=fsStats.size;
 			this.atime=fsStats.atime;
 			this.mtime=fsStats.mtime;
-			this.ctime=fsStats.ctime;
 		},
 		addChildren:function(children)
 		{
@@ -41,12 +40,11 @@
 				size:this.size,
 				atime:this.atime,
 				mtime:this.mtime,
-				ctime:this.ctime,
 				children:this.children
 			};
 		}
 	});
-	
+
 	FSTRUC.get=function(file)
 	{
 		return SC.File.stringToFile(file).stat()
@@ -70,7 +68,7 @@
 			else return rtn;
 		});
 	};
-	
+
 	module.exports=SMOD("FileStructure",FSTRUC);
-	
+
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
