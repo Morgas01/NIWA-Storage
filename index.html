@@ -4,9 +4,8 @@
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>NIWA-Storage</title>
-		
-		<link rel="stylesheet" href="css/index.css">
-		
+
+
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.js"></script>
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.object.adopt.js"></script>
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.function.rescope.js"></script>
@@ -14,14 +13,21 @@
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.Request.js"></script>
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.object.goPath.js"></script>
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.object.inputValues.js"></script>
-		<script type="text/javascript" defer="defer" src="js/index.js"></script>
-		
+		<script type="text/javascript" defer="defer" src="/morgas/Morgas.Patch.js"></script>
+		<script type="text/javascript" defer="defer" src="/morgas/Morgas.NodePatch.js"></script>
+		<script type="text/javascript" defer="defer" src="/morgas/gui/tree.js"></script>
+
 		<script type="text/javascript" defer="defer" src="js/dialog.js"></script>
-		<link rel="stylesheet" href="css/dialog.css">
+		<link rel="stylesheet" href="css/dialog.less">
+		<link rel="stylesheet" href="/morgas/gui/css/blocked.less">
+		<link rel="stylesheet" href="/morgas/gui/css/tree.less">
+
+		<script type="text/javascript" defer="defer" src="js/index.js"></script>
+		<link rel="stylesheet" href="css/index.less">
 	</head>
 
 	<body>
-		<div class="main">
+		<div class="manage blocked">
 			<form id="storageForm">
 				<label><span>Name</span><input type="text" name="name" required></label>
 				<label><span>Path</span><input type="text" name="path" required></label>
@@ -47,6 +53,13 @@
 				</table>
 			</div>
 		</div>
+		<div class="browse">
+				<div id="search">
+					<span>Search:</span>
+					<input type="text" id="searchInput">
+				</div>
+				<div id="treeContainer"></div>
+		</div>
 	</body>
 
-</html> 
+</html>

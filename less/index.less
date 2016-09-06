@@ -9,7 +9,10 @@ html,body {
 }
 body {
 	display:flex;
-	justify-content:center;;
+	justify-content:space-between;
+	&::before {
+		content: "";
+	}
 }
 .main {
 	max-width:100%;
@@ -19,7 +22,7 @@ body {
 .manage > * {
 	margin-top: 2em;
 }
-.manage > *:last-child() {
+.manage > *:last-child ( ) {
 	margin-bottom: 2em;
 }
 
@@ -110,4 +113,33 @@ body {
 
 .backupResponse .content {
     white-space: pre-wrap;
+}
+
+.browse {
+	margin-top: 2em;
+	padding-right: 1em;
+	overflow-x: hidden;
+	overflow-y: auto;
+	.fileItem {
+		display: flex;
+		white-space: nowrap;
+		&::before {
+			text-shadow: 0 0 2px black,0 0 2px black,0 0 2px black,0 0 2px black;
+		}
+		&.folder::before {
+			content:"📁";
+			color:gold;
+		}
+		&.file::before {
+			content:"📄";
+			color:silver;
+		}
+		.name {
+			flex-grow: 1;
+			margin: 0 1em;
+		}
+		.size {
+			color: rgba(0,0,0,0.6);
+		}
+	}
 }

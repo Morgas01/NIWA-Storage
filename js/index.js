@@ -3,7 +3,8 @@
 	SC=SC({
 		gIn:"getInputValues",
 		rs:"request",
-		dialog:"ui.Dialog"
+		dialog:"ui.Dialog",
+		tree:"gui.tree"
 	});
 
 	var storageForm=document.getElementById("storageForm");
@@ -18,7 +19,7 @@
 		}).then(function()
 		{
 			storageForm.reset();
-			updateList();
+			updateStorages();
 		},function(error)
 		{
 			storageFormMessage.textContent=error.response;
@@ -32,10 +33,11 @@
 	});
 
 	var storageList=document.getElementById("storageList");
-	var updateList=function()
+	var updateStorages=function()
 	{
 		SC.rs.json("rest/storage/list").then(function(storages)
 		{
+			//manager
 			storageList.innerHTML=storages.map(storage=>{
 				var backups=Object.keys(storage.backups).map(b=>String.raw`
 					<td class="backupName">${b}</td>
@@ -53,8 +55,22 @@
 </tr>
 ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 			}).join("");
+
+			//browser
+			var treeContainer=document.getElementById("treeContainer");
+			while (treeContainer.firstChild) treeContainer.firstChild.remove()
+			storages.map(s=>treeContainer.appendChild(SC.tree(s.structure,function(element,node)
+			{
+				element.innerHTML=String.raw`<div class="fileItem ${node.isFile?"file":"folder"}"><span class="name">${node.name}</span><span class="size">${formatSize(node.size)}</span></div>`;
+			})));
 		});
 	};
+	var formatSize=function(size)
+	{
+		var levels=["","k","M","G","T","E","Z","Y"];
+		for(var i=0;i<levels.length&&size>1000;i++,size/=1000);
+		return size.toFixed(2)+" "+levels[i]+"B";
+	}
 
 	storageList.addEventListener("click",function(event)
 	{
@@ -93,7 +109,7 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 						}).then(function()
 						{
 							dialog.remove();
-							updateList();
+							updateStorages();
 						},function(error)
 						{
 							backupFormMessage.textContent=error.response;
@@ -202,6 +218,11 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 		responseDialog.classList.add("backupResponse");
 	}
 
-	updateList();
+	SC.rs.json("rest/storage/warnings").then(warnings=>
+	{
+		if(Object.keys(warnings).length>0) alert("Warning!\n"+JSON.stringify(warnings,null,"\t"));
+		document.querySelector(".manage").classList.remove("blocked");
+		updateStorages();
+	});
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);

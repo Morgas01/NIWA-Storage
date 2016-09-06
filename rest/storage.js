@@ -75,6 +75,10 @@ module.exports={
 			});
 		}
 	},
+	warnings:function()
+	{
+		return storages.getWarnings();
+	},
 	list:function()
 	{
 		return storages.getAll();
