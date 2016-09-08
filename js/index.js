@@ -4,11 +4,15 @@
 		gIn:"getInputValues",
 		rs:"request",
 		dialog:"ui.Dialog",
-		tree:"gui.tree"
+		tree:"gui.selectionTree"
 	});
 
 	var storageForm=document.getElementById("storageForm");
 	var storageFormMessage=document.getElementById("storageFormMessage");
+
+	var searchInput=document.getElementById("searchInput");
+	var treeContainer=document.getElementById("treeContainer");
+
 	storageForm.addEventListener("submit",function(event)
 	{
 		storageFormMessage.textContent="";
@@ -35,8 +39,10 @@
 	var storageList=document.getElementById("storageList");
 	var updateStorages=function()
 	{
+		document.body.classList.add("blocked");
 		SC.rs.json("rest/storage/list").then(function(storages)
 		{
+			storages.sort((a,b)=>a.name.toLowerCase()>b.name.toLowerCase());
 			//manager
 			storageList.innerHTML=storages.map(storage=>{
 				var backups=Object.keys(storage.backups).map(b=>String.raw`
@@ -57,13 +63,17 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 			}).join("");
 
 			//browser
-			var treeContainer=document.getElementById("treeContainer");
-			while (treeContainer.firstChild) treeContainer.firstChild.remove()
+			while (treeContainer.firstChild) treeContainer.firstChild.remove();
+			for(var storage of storages) storage.structure.name=storage.name;
 			storages.map(s=>treeContainer.appendChild(SC.tree(s.structure,function(element,node)
 			{
-				element.innerHTML=String.raw`<div class="fileItem ${node.isFile?"file":"folder"}"><span class="name">${node.name}</span><span class="size">${formatSize(node.size)}</span></div>`;
+				element.classList.add("fileItem");
+				element.classList.add(node.isFile?"file":"folder");
+				element.innerHTML=String.raw`<span class="name">${node.name}</span><span class="size">${formatSize(node.size)}</span>`;
 			})));
-		});
+
+		})
+		.then(()=>document.body.classList.remove("blocked"));
 	};
 	var formatSize=function(size)
 	{
@@ -218,10 +228,34 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 		responseDialog.classList.add("backupResponse");
 	}
 
+	searchInput.addEventListener("change",function()
+	{
+		treeContainer.classList.remove("search");
+		for(var match of treeContainer.querySelectorAll(".match")) match.classList.remove("match");
+		for(var match of treeContainer.querySelectorAll(".expanded")) match.classList.remove("expanded");
+		if(searchInput.value)
+		{
+			treeContainer.classList.add("search");
+			var term=new RegExp(searchInput.value.trim().split("\s+").join(".*"),"i");
+			Array.from(treeContainer.querySelectorAll(".fileItem .name"))
+			.filter(e=>term.test(e.textContent))
+			.map(e=>e.parentNode.parentNode.parentNode)
+			.forEach(e=>
+			{
+				while(e!=treeContainer)
+				{
+					e.classList.add("match");
+					e=e.parentNode;
+					e.classList.add("expanded");
+					e=e.parentNode;
+				}
+			});
+		}
+	})
+
 	SC.rs.json("rest/storage/warnings").then(warnings=>
 	{
 		if(Object.keys(warnings).length>0) alert("Warning!\n"+JSON.stringify(warnings,null,"\t"));
-		document.querySelector(".manage").classList.remove("blocked");
 		updateStorages();
 	});
 

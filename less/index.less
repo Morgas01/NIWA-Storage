@@ -117,11 +117,12 @@ body {
 
 .browse {
 	margin-top: 2em;
-	padding-right: 1em;
-	overflow-x: hidden;
-	overflow-y: auto;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
 	.fileItem {
 		display: flex;
+		flex-grow: 1;
 		white-space: nowrap;
 		&::before {
 			text-shadow: 0 0 2px black,0 0 2px black,0 0 2px black,0 0 2px black;
@@ -140,6 +141,27 @@ body {
 		}
 		.size {
 			color: rgba(0,0,0,0.6);
+		}
+	}
+	#treeContainer
+	{
+		overflow-x: hidden;
+		overflow-y: auto;
+		padding-right: 1.5em;
+		flex-grow: 1;
+		margin-top: .5em;
+		.tree {
+			margin: 0;
+		}
+		label {
+			white-space: nowrap;
+			display: flex;
+		}
+		&.search li {
+			display:none;
+			&.match {
+				display: list-item;
+			}
 		}
 	}
 }

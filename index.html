@@ -16,6 +16,7 @@
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.Patch.js"></script>
 		<script type="text/javascript" defer="defer" src="/morgas/Morgas.NodePatch.js"></script>
 		<script type="text/javascript" defer="defer" src="/morgas/gui/tree.js"></script>
+		<script type="text/javascript" defer="defer" src="/morgas/gui/selectionTree.js"></script>
 
 		<script type="text/javascript" defer="defer" src="js/dialog.js"></script>
 		<link rel="stylesheet" href="css/dialog.less">
@@ -26,8 +27,8 @@
 		<link rel="stylesheet" href="css/index.less">
 	</head>
 
-	<body>
-		<div class="manage blocked">
+	<body class="blocked">
+		<div class="manage">
 			<form id="storageForm">
 				<label><span>Name</span><input type="text" name="name" required></label>
 				<label><span>Path</span><input type="text" name="path" required></label>
@@ -56,7 +57,7 @@
 		<div class="browse">
 				<div id="search">
 					<span>Search:</span>
-					<input type="text" id="searchInput">
+					<input type="text" id="searchInput" accesskey="f" title="Accesskey F">
 				</div>
 				<div id="treeContainer"></div>
 		</div>
