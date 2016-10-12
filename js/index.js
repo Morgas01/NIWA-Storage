@@ -4,7 +4,8 @@
 		gIn:"getInputValues",
 		rs:"request",
 		dialog:"ui.Dialog",
-		tree:"gui.selectionTree"
+		tree:"gui.tree",
+		stree:"gui.selectionTree"
 	});
 
 	var storageForm=document.getElementById("storageForm");
@@ -65,7 +66,7 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 			//browser
 			while (treeContainer.firstChild) treeContainer.firstChild.remove();
 			for(var storage of storages) storage.structure.name=storage.name;
-			storages.map(s=>treeContainer.appendChild(SC.tree(s.structure,function(element,node)
+			storages.map(s=>treeContainer.appendChild(SC.stree(s.structure,function(element,node)
 			{
 				element.classList.add("fileItem");
 				element.classList.add(node.isFile?"file":"folder");
@@ -230,26 +231,16 @@ ${backups.slice(1).map(s=>String.raw`<tr>${s}</tr>`).join("\n")}`
 
 	searchInput.addEventListener("change",function()
 	{
-		treeContainer.classList.remove("search");
-		for(var match of treeContainer.querySelectorAll(".match")) match.classList.remove("match");
-		for(var match of treeContainer.querySelectorAll(".expanded")) match.classList.remove("expanded");
+		var filterFn
 		if(searchInput.value)
 		{
-			treeContainer.classList.add("search");
 			var term=new RegExp(searchInput.value.trim().split("\s+").join(".*"),"i");
-			Array.from(treeContainer.querySelectorAll(".fileItem .name"))
-			.filter(e=>term.test(e.textContent))
-			.map(e=>e.parentNode.parentNode.parentNode)
-			.forEach(e=>
-			{
-				while(e!=treeContainer)
-				{
-					e.classList.add("match");
-					e=e.parentNode;
-					e.classList.add("expanded");
-					e=e.parentNode;
-				}
-			});
+			filterFn=node=>term.test(node.name);
+		}
+		for(var tree of treeContainer.children)
+		{
+			tree.filter(filterFn);
+			tree.expand(!!filterFn,true);
 		}
 	})
 
