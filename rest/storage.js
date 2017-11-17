@@ -1,114 +1,51 @@
 
-var SC=µ.shortcut({
+let SC=µ.shortcut({
 	File:"File",
 	FileUtil:"File.util",
-	FStruct:require.bind(null,"../js/FileStructure"),
-	Storage:require.bind(null,"../js/storage")
+	ServiceResult:"ServiceResult",
+	storageManager:require.bind(null,"../util/storageManager")
 });
-var storages=require("../lib/storageManager");
 
 module.exports={
 	add:function(param)
 	{
 		if(!param.data)
 		{
-			param.status=400;
-			return Promise.reject('post: {name:"string",path:"string"}');
+			return new SC.ServiceResult({status:400,data:'post: {name:"string",path:"string"}'});
 		}
 		else
 		{
-			if(storages.has(param.data.name))
-			{
-				param.status=400;
-				return "Name already in use";
-			}
-			else
-			{
-				return new SC.File(param.data.path).exists()
-				.then(function()
-				{
-					param.data.path=this.getAbsolutePath();
-					return SC.FStruct.get(param.data.path).then(function(structure)
-					{
-						param.data.structure=structure;
-						return storages.save(new SC.Storage(param.data));
-					});
-				},
-				function()
-				{
-					param.status=400;
-					return "path does not exists";
-				});
-			}
-			var msg=[];
-			return storages.get(param.data.name)
-			.then(function(results)
-			{
-				if(results.length>0) msg.push("Name already in use");
-				return new SC.File(param.data.path).exists()
-				.then(function()
-				{
-					if(msg.length==0)
-					{
-						param.data.path=this.getAbsolutePath();
-						return SC.FStruct.get(param.data.path).then(function(structure)
-						{
-							param.data.structure=structure;
-							return storages.save(new SC.Storage(param.data));
-						});
-					}
-					else
-					{
-						param.status=400;
-						return Promise.reject(msg.join("\n"));
-					}
-				},
-				function()
-				{
-					msg.push("path does not exists");
-				});
-			})
-			.catch(function(error)
-			{
-				µ.logger.error(error);
-				return Promise.reject(error);
-			});
+			return SC.storageManager.add(param.data.name,param.data.path);
 		}
 	},
 	warnings:function()
 	{
-		return storages.getWarnings();
+		return SC.storageManager.getWarnings();
 	},
 	list:function()
 	{
-		return storages.getAll();
+		return SC.storageManager.getAll();
 	},
-	addBackup:function(param)
+	update:function(param)
 	{
-		var storage=storages.get(param.data.id)
+		let storage=SC.storageManager.get(param.data.name)
 		if(!storage)
 		{
-			param.status=400;
-			return Promise.reject(`storage ${param.data.id} does not exist`);
-		}
-		else if (param.data.name in storage.backups)
-		{
-			param.status=400;
-			return Promise.reject(`storage ${param.data.id} does already has backup with this name (${param.data.name})`);
+			return new SC.ServiceResult({status:400,data:`storage ${param.data.name} does not exist`});
 		}
 		else
 		{
-			return new SC.File(param.data.path).exists()
-			.then(function()
-			{
-				storage.backups[param.data.name]=this.getAbsolutePath();
-				return storages.save(storage);
-			},
-			function()
-			{
-				param.status=400;
-				return Promise.reject("path does not exists");
-			});
+			return SC.storageManager.update(storage);
+		}
+	},
+	confirm:function(param)
+	{
+		switch(param.path[0])
+		{
+			case "update":
+				return SC.storageManager.confirmUpdate(param.data.token);
+			default:
+				return new SC.ServiceResult({status:400,data:`cannot confirm ${param.path[0]}`});
 		}
 	}
 };

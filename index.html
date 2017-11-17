@@ -5,62 +5,16 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>NIWA-Storage</title>
 
-
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.object.adopt.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.function.rescope.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.Promise.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.Request.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.object.goPath.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.util.object.inputValues.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.Patch.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/Morgas.NodePatch.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/gui/tree.js"></script>
-		<script type="text/javascript" defer="defer" src="/morgas/gui/selectionTree.js"></script>
-
-		<script type="text/javascript" defer="defer" src="js/dialog.js"></script>
-		<link rel="stylesheet" href="css/dialog.less">
-		<link rel="stylesheet" href="/morgas/gui/css/blocked.less">
-		<link rel="stylesheet" href="/morgas/gui/css/tree.less">
-
-		<script type="text/javascript" defer="defer" src="js/index.js"></script>
+		<script type="text/javascript" defer="defer" src="rest/dependencyManager/index.js"></script>
 		<link rel="stylesheet" href="css/index.less">
 	</head>
 
-	<body class="blocked">
-		<div class="manage">
-			<form id="storageForm">
-				<label><span>Name</span><input type="text" name="name" required></label>
-				<label><span>Path</span><input type="text" name="path" required></label>
-				<button>add</button>
-				<div id="storageFormMessage"></div>
-			</form>
-			<div id="storageList-wrapper">
-				<table id="storageTable">
-					<thead>
-						<tr>
-							<th rowspan="2">Name</th>
-							<th rowspan="2">Path</th>
-							<th colspan="2">backups</th>
-							<th rowspan="2">Actions</th>
-						</tr>
-						<tr>
-							<th>Name</th>
-							<th>Path</th>
-						</tr>
-					</thead>
-					<tbody id="storageList">
-					</tbody>
-				</table>
-			</div>
+	<body>
+		<div id="actions">
+			<button data-action="newStorage">New</button>
+			<button data-action="updateStorage">Update</button>
+			<button data-action="deleteStorage">Delete</button>
 		</div>
-		<div class="browse">
-				<div id="search">
-					<span>Search:</span>
-					<input type="text" id="searchInput" accesskey="f" title="Accesskey F">
-				</div>
-				<div id="treeContainer"></div>
-		</div>
+		<div id="content"></div>
 	</body>
-
 </html>

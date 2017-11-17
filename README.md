@@ -1,2 +1,2 @@
 # NIWA-Storage
-Storage manager for files and NIWA-app data
+Manager for removable storage media and Files
