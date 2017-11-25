@@ -9,6 +9,7 @@
 		addStorageDialog:"addStorageDialog",
 		updateDialog:"updateDialog"
 	});
+	let sort=new Intl.Collator(navigator.languages,{sensitivity:"base"}).compare
 
 	let content=document.getElementById("content");
 	let actions=document.getElementById("actions");
@@ -32,6 +33,7 @@
 		.then(function(data)
 		{
 			storageTable.clear();
+			data.sort((a,b)=>sort(a.name,b.name));
 			storageTable.add(data);
 		});
 	};
