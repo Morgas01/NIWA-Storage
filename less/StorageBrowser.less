@@ -1,0 +1,27 @@
+.StorageBrowser {
+	display:flex;
+	flex-direction:column;
+
+	.treeContainer {
+		overflow:auto;
+		min-width:50vw;
+		min-height:50vh;
+	}
+	.Tree {
+		li[data-type="Directory"]>ul {
+			&::before {
+				content:"📁";
+			}
+			&.expanded::before {
+				content:"📂";
+			}
+		}
+		li[data-type="File"]>span::before {
+			margin-left: -1em;
+			content:"📄";
+		}
+	}
+	& > button {
+		align-self:flex-end;
+	}
+}

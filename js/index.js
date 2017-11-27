@@ -7,7 +7,9 @@
 		TableConfig:"gui.TableConfig.Select",
 		Table:"gui.Table",
 		addStorageDialog:"addStorageDialog",
-		updateDialog:"updateDialog"
+		updateDialog:"updateDialog",
+		StorageBrowser:"StorageBrowser"
+
 	});
 	let sort=new Intl.Collator(navigator.languages,{sensitivity:"base"}).compare
 
@@ -51,6 +53,10 @@
         deleteStorage:function()
         {
 
+        },
+        browse:function()
+        {
+        	new SC.StorageBrowser(storageTable.data);
         }
 	},actions)
 
