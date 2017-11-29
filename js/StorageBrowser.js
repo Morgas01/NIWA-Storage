@@ -4,7 +4,8 @@
 
 	SC=SC({
 		Tree:"gui.Tree",
-		fuzzySearch:"fuzzySearch"
+		fuzzySearch:"fuzzySearch",
+		unit:"metricUnit"
 	});
 
 	let StorageBrowser=µ.Class(Dialog,{
@@ -31,7 +32,8 @@
 
 			this.tree=new SC.Tree(data,function(element,entry)
 			{
-				element.textContent=entry.name;
+				element.innerHTML=`<span class="name">${entry.name}</span><span class="size">${SC.unit.to(entry.size,{base:"B"})}</span>`;
+				element.classList.add("Structure");
 				element.parentNode.dataset.type=entry.type;
 			});
 			treeContainer.appendChild(this.tree.element);
@@ -53,7 +55,6 @@
 				this.tree.expandRoots(false);
 				this.tree.filter(null);
 			}
-
 		}
 	});
 

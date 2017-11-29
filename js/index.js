@@ -8,6 +8,7 @@
 		Table:"gui.Table",
 		addStorageDialog:"addStorageDialog",
 		updateDialog:"updateDialog",
+		Storage:"Storage",
 		StorageBrowser:"StorageBrowser"
 
 	});
@@ -35,7 +36,8 @@
 		.then(function(data)
 		{
 			storageTable.clear();
-			data.sort((a,b)=>sort(a.name,b.name));
+			data=data.map(SC.Storage.fromJSON)
+			.sort((a,b)=>sort(a.name,b.name));
 			storageTable.add(data);
 		});
 	};

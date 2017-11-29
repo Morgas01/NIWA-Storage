@@ -3,7 +3,8 @@
 	flex-direction:column;
 
 	.treeContainer {
-		overflow:auto;
+		overflow-y:auto;
+		overflow-x:visible;
 		min-width:50vw;
 		min-height:50vh;
 	}
@@ -16,9 +17,24 @@
 				content:"📂";
 			}
 		}
+		li[data-type="Directory"]>span:last-child::before {
+			margin-left: -1em;
+			content:"🗂";
+		}
 		li[data-type="File"]>span::before {
 			margin-left: -1em;
 			content:"📄";
+		}
+		.Structure {
+			display:flex;
+			.name {
+				flex-grow:1;
+				white-space:nowrap;
+			}
+			.size {
+				color:fade(@textColor,60%);
+				padding-left:1ex;
+			}
 		}
 	}
 	& > button {
