@@ -1,6 +1,6 @@
 ﻿var SC=µ.shortcut({
 	File:"File",
-	FileUtil:"File.util"
+	FileUtil:"File/util"
 });
 
 /* TODO

@@ -3,7 +3,7 @@
 
 	SC=SC({
 		File:"File",
-		util:"File.util",
+		util:"File/util",
 		Storage:require.bind(null,"../lib/storage"),
 		es:"errorSerializer",
 		getStructure:require.bind(null,"./getStructure"),

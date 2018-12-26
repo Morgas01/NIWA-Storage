@@ -1,7 +1,7 @@
 
 let SC=µ.shortcut({
 	File:"File",
-	FileUtil:"File.util",
+	FileUtil:"File/util",
 	ServiceResult:"ServiceResult",
 	storageManager:require.bind(null,"../util/storageManager")
 });
