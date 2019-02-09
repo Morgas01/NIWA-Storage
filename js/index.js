@@ -9,18 +9,26 @@
 		addStorageDialog:"addStorageDialog",
 		updateDialog:"updateDialog",
 		Storage:"Storage",
-		StorageBrowser:"StorageBrowser"
-
+		StorageBrowser:"StorageBrowser",
+		blocked:"gui.blocked",
+		loading:"gui.loading"
 	});
 	let sort=new Intl.Collator(navigator.languages,{sensitivity:"base"}).compare
 
 	let content=document.getElementById("content");
 	let actions=document.getElementById("actions");
 
+	let loadingElement=SC.loading.layered();
+	document.body.appendChild(loadingElement);
 	request.json("rest/storage/warnings").then(warnings=>
 	{
 		if(Object.keys(warnings).length>0) alert("Warning!\n"+JSON.stringify(warnings,null,"\t"));
-		updateStorages();
+		return updateStorages();
+	})
+	.then(()=>
+	{
+		loadingElement.remove();
+		SC.blocked.unblock(document.body);
 	});
 
 	let tableConfig=null;

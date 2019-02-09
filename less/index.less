@@ -6,6 +6,12 @@
 @import "style/Dialog";
 @import "structure/Tree";
 @import "style/Tree";
+@import "structure/loading";
+@import "style/loading";
+@import "structure/blocked";
+@import "style/blocked";
+@import "structure/menu/PathMenu";
+@import "style/menu/PathMenu";
 
 @import "StorageBrowser";
 
@@ -21,6 +27,14 @@ html,body {
 body {
 	display:flex;
 	flex-direction:column;
+	> .layered_1 {
+		.centerPosition(fixed);
+		z-index:1;
+		.fadeIn(2s);
+		.loading_1 {
+			border-width: 10vmin;
+		}
+	}
 }
 #actions {
 	button {

@@ -1,29 +1,67 @@
 .StorageBrowser {
-	display:flex;
-	flex-direction:column;
 
-	.treeContainer {
-		overflow-y:auto;
-		overflow-x:visible;
-		min-width:50vw;
-		min-height:50vh;
+	@directoryIcon:"📁";
+	@directoryIconExpanded:"📂";
+	@directoryIconEmpty:"🗂";
+	@fileIcon:"📄";
+
+	height: 95vh;
+	width: 95vw;
+	display:grid;
+	grid-template:~'
+		"bar	bar			bar		search	close"		2em
+		"tree	splitter	content	content	content"	1fr
+		 / 15%	4px			1fr		10%		2em';
+
+    .PathMenu {
+		grid-area: bar;
+		border-style:solid;
+		border-width: 1px;
+	}
+	[data-action="search"] {
+		grid-area: search;
+	}
+	[data-action="close"] {
+		grid-area: close;
+		align-self: start;
+	}
+	.pathContent {
+		grid-area: content;
+		[data-type="Directory"]::before {
+			content:@directoryIcon;
+		}
+		[data-type="File"]::before {
+			content:@fileIcon;
+		}
+		.name {
+			width:100%;
+		}
+	}
+	.treeWrapper {
+		grid-area: tree;
+		overflow:auto;
+	}
+	.splitter {
+		border-style:solid;
+		border-width: 0 2px;
+		border-color: lighten(@ternaryColor,30%);
 	}
 	.Tree {
 		li[data-type="Directory"]>ul {
 			&::before {
-				content:"📁";
+				content:@directoryIcon;
 			}
 			&.expanded::before {
-				content:"📂";
+				content:@directoryIconExpanded;
 			}
 		}
 		li[data-type="Directory"]>span:last-child::before {
 			margin-left: -1em;
-			content:"🗂";
+			content:@directoryIconEmpty;
 		}
 		li[data-type="File"]>span::before {
 			margin-left: -1em;
-			content:"📄";
+			content:@fileIcon;
 		}
 		.Structure {
 			display:flex;
@@ -36,8 +74,5 @@
 				padding-left:1ex;
 			}
 		}
-	}
-	& > button {
-		align-self:flex-end;
 	}
 }
