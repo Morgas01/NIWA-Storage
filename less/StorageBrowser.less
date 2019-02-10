@@ -9,9 +9,9 @@
 	width: 95vw;
 	display:grid;
 	grid-template:~'
-		"bar	bar			bar		search	close"		2em
-		"tree	splitter	content	content	content"	1fr
-		 / 15%	4px			1fr		10%		2em';
+		"search				bar			bar		close"		auto
+		"tree				splitter	content	content"	1fr
+		 / fit-content(30%)	4px			1fr		auto';
 
     .PathMenu {
 		grid-area: bar;
@@ -27,19 +27,25 @@
 	}
 	.pathContent {
 		grid-area: content;
-		[data-type="Directory"]::before {
-			content:@directoryIcon;
-		}
-		[data-type="File"]::before {
-			content:@fileIcon;
+		overflow:auto;
+		.Table {
+			white-space: nowrap;
 		}
 		.name {
 			width:100%;
+
+			&[data-type="Directory"]::before {
+				content:@directoryIcon;
+			}
+			&[data-type="File"]::before {
+				content:@fileIcon;
+			}
 		}
 	}
 	.treeWrapper {
 		grid-area: tree;
 		overflow:auto;
+		white-space:nowrap;
 	}
 	.splitter {
 		border-style:solid;
@@ -47,6 +53,7 @@
 		border-color: lighten(@ternaryColor,30%);
 	}
 	.Tree {
+		padding-left: 3ex;
 		li[data-type="Directory"]>ul {
 			&::before {
 				content:@directoryIcon;
@@ -62,17 +69,6 @@
 		li[data-type="File"]>span::before {
 			margin-left: -1em;
 			content:@fileIcon;
-		}
-		.Structure {
-			display:flex;
-			.name {
-				flex-grow:1;
-				white-space:nowrap;
-			}
-			.size {
-				color:fade(@textColor,60%);
-				padding-left:1ex;
-			}
 		}
 	}
 }

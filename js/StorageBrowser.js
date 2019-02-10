@@ -12,6 +12,8 @@
 		TableConfig:"gui.TableConfig.Select",
 	});
 
+	let includes=Function.prototype.call.bind(Array.prototype.includes);
+
 	let StorageBrowser=µ.Class(Dialog,{
 		constructor:function(data)
 		{
@@ -27,7 +29,7 @@
 				actions:this.actions
 			});
 
-			SC.rs.all(this,["_onTreeSelect"]);
+			SC.rs.all(this,["_onTreeDblClick","_onContentDblClick"]);
 
 			this.data=data;
 
@@ -40,18 +42,18 @@
 
 			this.tree=new SC.Tree(structures,(element,entry)=>
 			{
-				element.innerHTML=`<span class="name">${this.getStructureEntryName(entry)}</span><span class="size">${SC.unit.to(entry.size,{base:"B"})}</span>`;
+				element.textContent=this.getStructureEntryName(entry);
 				element.classList.add("Structure");
 				element.parentNode.dataset.type=entry.type;
 			});
 			this.content.querySelector(".treeWrapper").appendChild(this.tree.element);
-			this.tree.element.addEventListener("dblclick",this._onTreeSelect)
+			this.tree.element.addEventListener("dblclick",this._onTreeDblClick)
 
 			this.pathMenu=new SC.PathMenu(structures,(e,d)=>e.textContent=this.getStructureEntryName(d),{
 				menuParam:{filter:d=>d.type==="Directory"}
 			});
 			this.content.appendChild(this.pathMenu.element);
-			this.pathMenu.addEventListener("pathChange",this,this._onDirectorySelect);
+			this.pathMenu.addEventListener("pathChange",this,this._onPathSelect);
 
 			let tableConfig=new SC.TableConfig([
 				{
@@ -59,8 +61,8 @@
 					styleClass:"name",
 					fn:(c,e)=>
 					{
-						c.textContent=e.name;
-						c.dataset.type=e.type;
+						c.textContent=this.getStructureEntryName(e);
+						c.dataset.type=c.parentNode.dataset.type=e.type;
 					}
 				},
 				{
@@ -72,15 +74,14 @@
 					getter:e=>
 					{
 						let date=new Date(e.mtime);
-						return date.getFullYear()+"."+(date.getMonth()+1)+"."+date.getDay()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds();
+						return date.toLocaleString(undefined,{hour:"2-digit",minute:"2-digit",second:"2-digit"})+" "+date.toLocaleString(undefined,{year:"numeric",month:"2-digit",day:"2-digit"});
 					}
 				}
 			],{noInput:true,control:true})
 			this.table=new SC.Table(tableConfig);
 			this.table.add(structures);
 			this.pathContent.appendChild(this.table.getTable());
-
-
+			this.pathContent.addEventListener("dblclick",this._onContentDblClick);
 		},
 		getStructureEntryName(entry)
 		{
@@ -92,23 +93,7 @@
 			}
 			return displayName;
 		},
-		updateFilter:function()
-		{
-			if(this.input.value)
-			{
-				let term=this.input.value.trim();
-				let scorers=[SC.fuzzySearch.scoreFunctions.string.words(term.match(/(:?\b[a-z]|[A-Z])[a-z]*/g)||term.split(/\s+/))];
-				filterFn=entry=>SC.fuzzySearch.score(entry.name,scorers)>0.3;
-				this.tree.filter(filterFn);
-				this.tree.expandRoots(true);
-			}
-			else
-			{
-				this.tree.expandRoots(false);
-				this.tree.filter(null);
-			}
-		},
-		_onTreeSelect(event)
+		_onTreeDblClick(event)
 		{
 			let target=event.target;
 			let directory=null;
@@ -119,7 +104,7 @@
 			if(directory.type==="File") directory=directory.parent;
 			this.pathMenu.setActive(directory);
 		},
-		_onDirectorySelect(event)
+		_onPathSelect(event)
 		{
 			this.table.clear();
 			let data;
@@ -127,7 +112,32 @@
 			else data=this.data.map(r=>r.structure);
 			this.table.add(data);
 		},
-		actions:{},
+		_onContentDblClick(event)
+		{
+			let target=event.target;
+			let directory=null;
+			while(target&&!(directory=this.table.change(target))) target=target.parentNode;
+
+			if(directory!=null&&directory.type==="Directory") this.pathMenu.setActive(directory);
+		},
+		actions:{
+			search(event,input)
+			{
+				if(input.value)
+				{
+					let term=input.value.trim();
+					let scorers=[SC.fuzzySearch.scoreFunctions.string.words(term.match(/(:?\b[a-z]|[A-Z])[a-z]*/g)||term.split(/\s+/))];
+					filterFn=entry=>SC.fuzzySearch.score(entry.name,scorers)>0.3;
+					this.tree.filter(filterFn);
+					this.tree.expandRoots(true);
+				}
+				else
+				{
+					this.tree.expandRoots(false);
+					this.tree.filter(null);
+				}
+			}
+		},
 
 	});
 
