@@ -10,6 +10,8 @@
 		PathMenu:"gui.PathMenu",
 		Table:"gui.OrganizedTable",
 		TableConfig:"gui.TableConfig.Select",
+		register:"register",
+		request:"request"
 	});
 
 	let includes=Function.prototype.call.bind(Array.prototype.includes);
@@ -23,6 +25,16 @@
 				<button data-action="close">❌</button>
 				<div class="splitter"></div>
 				<div class="treeWrapper"></div>
+				<div class="actions">
+					<button data-action="copy"></button>
+					<button data-action="move"></button>
+					<button data-action="addSelection" accesskey="s"></button>
+					<div class="showSelectionWrapper">
+						<button class="showSelection menu" data-count="0"></button>
+						<ul class="menu"></ul>
+					</div>
+					<button data-action="clearSelection"></button>
+				</div>
 			`,{
 				modal:true,
 				actionEvents:["click","change"],
@@ -82,16 +94,27 @@
 			this.table.add(structures);
 			this.pathContent.appendChild(this.table.getTable());
 			this.pathContent.addEventListener("dblclick",this._onContentDblClick);
+
+			this.selectedButton=this.content.querySelector(".showSelection");
+			this.selectedMenu=this.selectedButton.nextElementSibling;
+			this.selectedStructures=new Set();
 		},
 		getStructureEntryName(entry)
 		{
 			let displayName=entry.name;
 			if(entry.parent==null)
 			{
-				let root=this.data.find(root=>root.structure==entry);
+				let root=this._getStorage(entry);
 				displayName=root.name+" ("+displayName+")";
 			}
 			return displayName;
+		},
+		getStructureEntryPath(entry)
+		{
+			let path=entry.getPath();
+			let root=this._getStorage(entry);
+			path[0]=root.name+" ("+path[0]+")";
+			return path.join("/");
 		},
 		_onTreeDblClick(event)
 		{
@@ -120,6 +143,12 @@
 
 			if(directory!=null&&directory.type==="Directory") this.pathMenu.setActive(directory);
 		},
+		_getStorage(structure)
+		{
+			let top=structure;
+			while(top.parent) top=top.parent;
+			return this.data.find(root=>root.structure==top)
+		},
 		actions:{
 			search(event,input)
 			{
@@ -136,9 +165,41 @@
 					this.tree.expandRoots(false);
 					this.tree.filter(null);
 				}
-			}
-		},
+			},
+			addSelection(event)
+			{
+				this.table.getSelected().forEach(this.selectedStructures.add,this.selectedStructures);
+				this.selectedButton.dataset.count=this.selectedStructures.size;
+				this.selectedMenu.innerHTML=Array.from(this.selectedStructures)
+				.map(s=>`<li>${this.getStructureEntryPath(s)}</li>`)
+				.join("\n");
+			},
+			clearSelection()
+			{
+				this.selectedStructures.clear();
+				this.selectedButton.dataset.count=0;
+				this.selectedMenu.innerHTML="";
+			},
+			copy()
+			{
+				let target=this.pathMenu.getActive();
+				if(target==null) return;
 
+				let data={
+					structures:SC.register(1,()=>[]),
+					target:target.getPath(),
+					targetStorage:this._getStorage(target).name
+				};
+				this.selectedStructures.forEach(s=>
+				{
+					data.structures[this._getStorage(s).name].push(s.getPath());
+				});
+				SC.request({
+					url:"rest/actions/copy",
+					data:JSON.stringify(data)
+				}).then(µ.logger.info,µ.logger.error);
+			}
+		}
 	});
 
 	SMOD("StorageBrowser",StorageBrowser);

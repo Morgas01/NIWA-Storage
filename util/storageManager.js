@@ -4,12 +4,13 @@
 	SC=SC({
 		File:"File",
 		util:"File/util",
-		Storage:require.bind(null,"../lib/storage"),
+		Storage:require.bind(null,"../lib/Storage"),
 		es:"errorSerializer",
 		getStructure:require.bind(null,"./getStructure"),
 		Node:"NodePatch",
 		compare:"NodePatch.Compare",
-    	niwaWorkDir:"niwaWorkDir"
+    	niwaWorkDir:"niwaWorkDir",
+		ServiceResult:"ServiceResult",
 	});
 
 	let STORAGE_ROTATION=10;
