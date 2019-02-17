@@ -120,7 +120,7 @@
 						}
 						else
 						{
-							job.addMessage(`CRC NOT (${sourceCRC}!=${targetCRC})`);
+							job.addMessage(`CRC NOT ok(${sourceCRC}!=${targetCRC})`);
 							updateJob("message",job);
 						}
 
