@@ -75,26 +75,33 @@
 					}
 				}
 
+				for(let i=0;i<todo.length;i++)
+				{
+					let {source,target}=todo[i];
+					let stat=await source.stat();
+					if(stat.isDirectory())
+					{
+						job.addMessage("flatten directory "+source.getAbsolutePath());
+						updateJob("message",job);
+
+						todo.splice(i,1,...(await source.listFiles()).map(f=>({
+							source:source.clone().changePath(f),
+							target:target.clone().changePath(f)
+						})));
+						i--;
+					}
+				}
+
+				job.progressMax=todo.length;
+
 				while(todo.length>0)
 				{
+					job.setProgress(job.progressMax-todo.length);
 					let {source,target}=todo.shift();
 					job.addMessage("copying "+source.getAbsolutePath());
 					updateJob("message",job);
 					try
 					{
-						let isDirectory=(await source.stat()).isDirectory();
-						if(isDirectory)
-						{
-							job.addMessage("flatten directory");
-							updateJob("message",job);
-
-							todo.unshift(...(await source.listFiles()).map(f=>({
-								source:source.clone().changePath(f),
-								target:target.clone().changePath(f)
-							})));
-
-							continue;
-						}
 						await SC.fileUtil.enshureDir(target.getDir())
 						await source.copy(target);
 
@@ -127,6 +134,7 @@
 				}
 
 				µ.logger.debug("finish");
+				job.setProgress(job.progressMax-todo.length);
 				job.setState(SC.Task.states.DONE);
 				job.addMessage("success");
 				updateJob("end",job);

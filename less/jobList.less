@@ -9,22 +9,29 @@
 		border-style:solid;
 		border-width:1px 0;
 	}
+	.state::after {
+		content:attr(data-state);
+	}
 	.messages {
 		max-height:5em;
 		overflow:hidden;
+		transition: max-height 1s;
 		&:hover {
 			overflow:auto;
+			max-height:20em;
 		}
 		> * {
 			display:flex;
 		}
 		.text {
 			flex: 1 0 0;
-			white-space:nowrap;
 		}
 		.time {
 			flex: 0 1 0;
 			white-space:nowrap;
 		}
+	}
+	progress {
+		width:100%;
 	}
 }

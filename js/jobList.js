@@ -13,11 +13,11 @@
 
 	let tableColumns=[
 		{
-			fn:function status(element,data)
+			fn:function state(element,data)
 			{
-				element.dataset.status=data.status
+				element.dataset.state=data.state
 			},
-			styleClass:"status"
+			styleClass:"state"
 		},
 		{
 			fn:function title(element,data)
@@ -29,7 +29,16 @@
 		{
 			fn:function messages(element,data)
 			{
-				let wrapper=element.children[0];
+				let progress=element.children[0];
+				if(!progress)
+				{
+					progress=document.createElement("PROGRESS");
+					element.appendChild(progress);
+				}
+				progress.max=data.progressMax;
+				progress.value=data.progress;
+
+				let wrapper=element.children[1];
 				if(!wrapper)
 				{
 					wrapper=document.createElement("DIV");
@@ -45,7 +54,14 @@
 
 					let text=document.createElement("SPAN");
 					text.classList.add("text");
-					text.textContent=message.message;
+					if(typeof message.message === "string")
+					{
+						text.textContent=message.message;
+					}
+					else
+					{
+						text.textContent=JSON.stringify(message.message);
+					}
 					entry.appendChild(text);
 
 					let time=document.createElement("SPAN");
@@ -55,8 +71,8 @@
 
 					wrapper.insertBefore(entry,wrapper.firstChild);
 				}
-			},
-		}
+			}
+		},
 	];
 
 	let jobList={

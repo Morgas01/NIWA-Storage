@@ -101,6 +101,7 @@
 			let structures=data.map(r=>r.structure);
 			this.tree.clear().add(structures);
 			this.pathMenu.setData(structures);
+			this.pathMenu.setActive(this.pathMenu.getActive());
 		},
 		getStructureEntryName(entry)
 		{
