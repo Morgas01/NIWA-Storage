@@ -11,18 +11,39 @@
 		Storage:"Storage",
 		StorageBrowser:"StorageBrowser",
 		blocked:"gui.blocked",
-		loading:"gui.loading"
+		loading:"gui.loading",
+		jobList:"jobList"
 	});
 	let sort=new Intl.Collator(navigator.languages,{sensitivity:"base"}).compare
 
-	let content=document.getElementById("content");
-	let actions=document.getElementById("actions");
+	let listWrapper=document.getElementById("list");
+	let browserWrapper=document.getElementById("browser");
+	let jobsWrapper=document.getElementById("jobs");
+	let actions=document.getElementById("list-actions");
 
 	let loadingElement=SC.loading.layered();
 	document.body.appendChild(loadingElement);
+
+
+	let storageTable;
+	let browser;
+	let jobList;
+
+
 	request.json("rest/storage/warnings").then(warnings=>
 	{
 		if(Object.keys(warnings).length>0) alert("Warning!\n"+JSON.stringify(warnings,null,"\t"));
+
+		storageTable=new SC.Table(new SC.TableConfig(["name","path"],{radioName:"storageSelect",noInput:true}));
+		listWrapper.appendChild(storageTable.getTable());
+
+		browser=new SC.StorageBrowser([]);
+		browserWrapper.appendChild(browser.content);
+
+		jobList=SC.jobList;
+		jobList.connect();
+		jobsWrapper.appendChild(jobList.element);
+
 		return updateStorages();
 	})
 	.then(()=>
@@ -31,22 +52,16 @@
 		SC.blocked.unblock(document.body);
 	});
 
-	let tableConfig=null;
-	let storageTable=null;
 	let updateStorages=function()
 	{
-		if(storageTable==null)
-		{
-			storageTable=new SC.Table(new SC.TableConfig(["name","path"],{radioName:"storageSelect",noInput:true}));
-			content.appendChild(storageTable.getTable());
-		}
 		return request.json("rest/storage/list")
 		.then(function(data)
 		{
 			storageTable.clear();
 			data=data.map(SC.Storage.fromJSON)
 			.sort((a,b)=>sort(a.name,b.name));
-			storageTable.add(data);
+			storageTable.clear().add(data);
+			browser.setData(data);
 		});
 	};
 

@@ -11,15 +11,18 @@
 		Table:"gui.OrganizedTable",
 		TableConfig:"gui.TableConfig.Select",
 		register:"register",
-		request:"request"
+		request:"request",
+		encase:"encase",
+		action:"gui.actionize"
 	});
 
-	let includes=Function.prototype.call.bind(Array.prototype.includes);
-
-	let StorageBrowser=µ.Class(Dialog,{
+	let StorageBrowser=µ.Class({
 		constructor:function(data)
 		{
-			this.mega(`
+			SC.rs.all(this,["_onTreeDblClick","_onContentDblClick"]);
+
+			this.content=document.createElement("div");
+			this.content.innerHTML=`
 				<input type="text" data-action="search">
 				<div class="pathContent"></div>
 				<button data-action="close">❌</button>
@@ -35,24 +38,16 @@
 					</div>
 					<button data-action="clearSelection"></button>
 				</div>
-			`,{
-				modal:true,
-				actionEvents:["click","change"],
-				actions:this.actions
-			});
+			`;
 
-			SC.rs.all(this,["_onTreeDblClick","_onContentDblClick"]);
-
-			this.data=data;
+			this.data=[];
 
 			this.content.classList.add("StorageBrowser");
 
 			this.search=this.content.querySelector("input[data-action='search']");
 			this.pathContent=this.content.querySelector(".pathContent");
 
-			let structures=data.map(r=>r.structure);
-
-			this.tree=new SC.Tree(structures,(element,entry)=>
+			this.tree=new SC.Tree([],(element,entry)=>
 			{
 				element.textContent=this.getStructureEntryName(entry);
 				element.classList.add("Structure");
@@ -61,7 +56,7 @@
 			this.content.querySelector(".treeWrapper").appendChild(this.tree.element);
 			this.tree.element.addEventListener("dblclick",this._onTreeDblClick)
 
-			this.pathMenu=new SC.PathMenu(structures,(e,d)=>e.textContent=this.getStructureEntryName(d),{
+			this.pathMenu=new SC.PathMenu([],(e,d)=>e.textContent=this.getStructureEntryName(d),{
 				menuParam:{filter:d=>d.type==="Directory"}
 			});
 			this.content.appendChild(this.pathMenu.element);
@@ -91,13 +86,21 @@
 				}
 			],{noInput:true,control:true})
 			this.table=new SC.Table(tableConfig);
-			this.table.add(structures);
 			this.pathContent.appendChild(this.table.getTable());
 			this.pathContent.addEventListener("dblclick",this._onContentDblClick);
 
 			this.selectedButton=this.content.querySelector(".showSelection");
 			this.selectedMenu=this.selectedButton.nextElementSibling;
 			this.selectedStructures=new Set();
+
+			SC.action(this.actions, this.content,this,["click","change"]);
+		},
+		setData(data)
+		{
+			this.data=SC.encase(data);
+			let structures=data.map(r=>r.structure);
+			this.tree.clear().add(structures);
+			this.pathMenu.setData(structures);
 		},
 		getStructureEntryName(entry)
 		{

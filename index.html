@@ -10,12 +10,20 @@
 	</head>
 
 	<body class="blocked">
-		<div id="actions">
-			<button data-action="newStorage" title="New">📄</button>
-			<button data-action="updateStorage" title="Update">🔃</button>
-			<button data-action="deleteStorage" title="Delete">🗑</button>
-			<button data-action="browse" title="Browse">📚</button>
+		<div id="views">
+			<a href="#list"><button title="List">📃</button></a>
+			<a href="#browser"><button title="Browser">📚</button></a>
+			<a href="#jobs"><button title="Jobs">🗄</button></a>
 		</div>
-		<div id="content"></div>
+		<div id="content">
+			<div id="browser"></div>
+			<div id="jobs"></div>
+			<div id="list">
+				<div id="list-actions">
+					<button data-action="newStorage" title="New">📄</button>
+					<button data-action="updateStorage" title="Update">🔃</button>
+					<button data-action="deleteStorage" title="Delete">🗑</button>
+				</div></div>
+		</div>
 	</body>
 </html>

@@ -22,6 +22,7 @@
 		{
 			let job=new SC.Job({ID:nextJobID++,name:"copy to "+targetStorage+"/"+target.join("/"),action:"copy",structures,target,targetStorage});
 			this.jobs.push(job);
+			updateJob("add",job);
 			this._trigger();
 			return {jobID:job.ID};
 		},
@@ -97,6 +98,9 @@
 						await SC.fileUtil.enshureDir(target.getDir())
 						await source.copy(target);
 
+						job.addMessage(`finished copy. checking CRC`);
+						updateJob("message",job);
+
 						let [sourceCRC,targetCRC]= await Promise.all([
 							this.getCRC(source),
 							this.calcCRC(target)
@@ -104,7 +108,7 @@
 
 						if(sourceCRC===targetCRC)
 						{
-							job.addMessage(`CRC ok (${targetCRC})`);
+							job.addMessage(`CRC ok [${targetCRC}]`);
 							updateJob("message",job);
 						}
 						else

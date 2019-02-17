@@ -1,7 +1,8 @@
 
+let jobManager=require("../util/jobManager"); //start job events
+
 let SC=µ.shortcut({
 	ServiceResult:"ServiceResult",
-	jobManager:require.bind(null,"../util/jobManager")
 });
 
 module.exports={
@@ -13,7 +14,7 @@ module.exports={
 		}
 		else
 		{
-			return SC.jobManager.copyToDirectory(param.data.structures,param.data.target,param.data.targetStorage);
+			return jobManager.copyToDirectory(param.data.structures,param.data.target,param.data.targetStorage);
 		}
 	}
 };
