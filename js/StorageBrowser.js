@@ -13,7 +13,8 @@
 		register:"register",
 		request:"request",
 		encase:"encase",
-		action:"gui.actionize"
+		action:"gui.actionize",
+		Organizer:"Organizer"
 	});
 
 	let StorageBrowser=µ.Class({
@@ -137,6 +138,7 @@
 			let data;
 			if(event.active) data=Array.from(event.active.children);
 			else data=this.data.map(r=>r.structure);
+			data.sort(SC.Organizer.attributeSort(["type","name"]))
 			this.table.add(data);
 		},
 		_onContentDblClick(event)
