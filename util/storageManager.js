@@ -9,7 +9,7 @@
 		getStructure:require.bind(null,"./getStructure"),
 		Node:"NodePatch",
 		compare:"NodePatch.Compare",
-    	niwaWorkDir:"niwaWorkDir",
+    	niwaAppWorkDir:"niwaAppWorkDir",
 		ServiceResult:"ServiceResult",
 	});
 
@@ -19,11 +19,10 @@
 	let storages=new Map();
 	let warnings=new Map();
 	let pendingRequest=new Map();
-	let storageFolder=new SC.File(SC.niwaWorkDir).changePath("work/"+worker.context);
+	let storageFolder=new SC.File(SC.niwaAppWorkDir);
 
 	//scan and load storages
-	let initialized=SC.util.enshureDir(storageFolder)
-	.then(()=>storageFolder.listFiles())
+	storageFolder.listFiles()
 	.then(files=>
 	{
 		files=files.filter(f=>/\.json$/.test(f));
