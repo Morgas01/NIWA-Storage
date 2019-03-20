@@ -22,7 +22,7 @@
 	let storageFolder=new SC.File(SC.niwaAppWorkDir);
 
 	//scan and load storages
-	storageFolder.listFiles()
+	let initialized=storageFolder.listFiles()
 	.then(files=>
 	{
 		files=files.filter(f=>/\.json$/.test(f));
