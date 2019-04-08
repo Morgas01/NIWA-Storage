@@ -6,7 +6,8 @@
 		util:"File/util",
 		Storage:require.bind(null,"../lib/Storage"),
 		es:"errorSerializer",
-		getStructure:require.bind(null,"./getStructure"),
+		createStructure:require.bind(null,"./createStructure"),
+		getStructureTree:require.bind(null,"./getStructureTree"),
 		Node:"NodePatch",
 		compare:"NodePatch.Compare",
     	niwaAppWorkDir:"niwaAppWorkDir",
@@ -126,7 +127,7 @@
 				.then(function()
 				{
 					path=this.getAbsolutePath();
-					return SC.getStructure(path).then(function(structure)
+					return SC.getStructureTree(path).then(function(structure)
 					{
 						return manager.save(new SC.Storage({name,path,structure}));
 					});
@@ -142,7 +143,7 @@
 			let request={
 				type:"update",
 				storage:storage,
-				structure:await SC.getStructure(storage.path)
+				structure:await SC.getStructureTree(storage.path)
 			};
 
 			let compare=SC.compare.create(request.structure,storage.structure,s=>s.name,structureCompare);
@@ -172,6 +173,11 @@
 			request.storage.structure=request.structure;
 
 			return manager.save(request.storage);
+		},
+		async getDir(storage,path)
+		{
+			let dir=new SC.File(storage.path).changePath(...path);
+			return await Promise.all((await dir.listFiles()).map(async name=>SC.createStructure(dir.clone().changePath(name))));
 		}
 	};
 
