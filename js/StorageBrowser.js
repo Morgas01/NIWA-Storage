@@ -30,14 +30,14 @@
 				<div class="splitter"></div>
 				<div class="treeWrapper"></div>
 				<div class="actions">
-					<button data-action="copy"></button>
-					<button data-action="move"></button>
-					<button data-action="addSelection" accesskey="s"></button>
+					<button data-action="copy" title="copy"></button>
+					<button data-action="move" title="move"></button>
+					<button data-action="addSelection" title="addSelection" accesskey="s"></button>
 					<div class="showSelectionWrapper">
-						<button class="showSelection menu" data-count="0"></button>
+						<button class="showSelection menu" title="showSelection menu" data-count="0"></button>
 						<ul class="menu"></ul>
 					</div>
-					<button data-action="clearSelection"></button>
+					<button data-action="clearSelection" title="clearSelection"></button>
 				</div>
 			`;
 
