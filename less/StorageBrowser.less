@@ -8,56 +8,44 @@
 	height: 100%;
 	display:grid;
 	grid-template:~'
-		"search				bar			bar		close"		auto
-		"tree				splitter	actions	."			auto
-		"tree				splitter	content	content"	1fr
-		 / fit-content(30%)	4px			1fr		auto';
+		"bar				bar		"	auto
+		"actions			actions	"	auto
+		"search				content	"	auto
+		"tree				content	"	1fr
+		 / fit-content(50%)		auto';
 
-    .PathMenu {
+    .locationbar {
 		grid-area: bar;
 		border-style:solid;
 		border-width: 1px;
+		display:flex;
+		font-size:134%;
+		.PathMenu {
+			order:-1;
+		}
+		[data-action="locate"] {
+			flex: 1 0 0;
+		}
 	}
 	[data-action="search"] {
 		grid-area: search;
 	}
-	[data-action="close"] {
-		grid-area: close;
-		align-self: start;
+
+	.storageTree {
+		grid-area: tree;
+		overflow:auto;
+		white-space:nowrap;
 	}
+
 	.actions {
 		grid-area:actions;
 		display:flex;
-		justify-content:flex-end;
 
+		padding:1ex 0;
 
-		[data-action="copy"] {
-			background-image:url("../images/copy.svg");
-		}
-		[data-action="move"] {
-			background-image:url("../images/move.svg");
-		}
-		[data-action="addSelection"] {
-			background-image:url("../images/addSelection.svg");
-		}
-		.showSelectionWrapper {
-			position:relative;
-			ul.menu {
-				top:~'calc( 100% + .5ex )';
-				right:0;
-			}
-		}
-		.showSelection {
-			background-image:url("../images/selection.svg");
-		}
-		[data-action="clearSelection"] {
-			background-image:url("../images/clearSelection.svg");
-		}
-
-		button {
-			height:2em;
-			width:3em;
-			margin-left:1ex;
+		[data-action] {
+			margin:0 1ex;
+			font-size:130%;
 			background-color:@primaryColor;
 			background-repeat:no-repeat;
 			background-position: 50% 50%;
@@ -79,7 +67,7 @@
 			transform: translate(25%,25%);
 		}
 	}
-	.pathContent {
+	.content {
 		grid-area: content;
 		overflow:auto;
 		.Table {
@@ -88,6 +76,9 @@
 		.name {
 			width:100%;
 
+			&::before {
+				margin-right:1ex;
+			}
 			&[data-type="Directory"]::before {
 				content:@directoryIcon;
 			}
@@ -95,17 +86,6 @@
 				content:@fileIcon;
 			}
 		}
-	}
-	.treeWrapper {
-		grid-area: tree;
-		overflow:auto;
-		white-space:nowrap;
-	}
-	.splitter {
-		grid-area:splitter;
-		border-style:solid;
-		border-width: 0 2px;
-		border-color: lighten(@ternaryColor,30%);
 	}
 	.Tree {
 		padding-left: 3ex;

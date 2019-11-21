@@ -15,6 +15,10 @@
 	let nextJobID=0;
 
 	let updateJob=worker.eventSource("job",()=>jobManager.jobs);
+	let jobMessage=function(job,message)
+	{
+		worker.logger.info({jobID:job.ID,jobName:job.name})
+	}
 
 	let jobManager={
 		jobs:[],
