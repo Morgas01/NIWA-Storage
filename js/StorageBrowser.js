@@ -11,12 +11,14 @@
 		Table:"gui.OrganizedTable",
 		TableConfig:"gui.TableConfig.Select",
 		register:"register",
+		mapRegister:"mapRegister",
 		request:"request",
 		encase:"encase",
 		action:"gui.actionize",
 		Organizer:"Organizer",
 		Structure:"Structure",
-		NodePatch:"NodePatch"
+		NodePatch:"NodePatch",
+		Dialog:"gui.Dialog"
 	});
 
 	let StorageBrowser=µ.Class({
@@ -27,7 +29,7 @@
 			this.content=document.createElement("div");
 			this.content.innerHTML=`
 				<div class="locationbar">
-					<input type="text" data-action="locate">
+					<label><input type="text" data-action="locate"></label>
 					<div data-action="close"></div>
 				</div>
 				<div class="actions">
@@ -37,12 +39,14 @@
 					<div data-action="showMarked" accesskey="m" data-selected="0" data-marked="0">marked</div>
 				</div>
 				<input type="text" data-action="search">
+				<div data-action="storageConfig">config</div>
 				<div class="storageTree"></div>
 				<div class="content"></div>
 			`;
 
 			this.data=[];
 			this.structureToStorageMap=new WeakMap();
+			this.markedPaths=SC.mapRegister(1,Map,()=>new Set());
 
 			this.content.classList.add("StorageBrowser");
 
@@ -51,6 +55,7 @@
 			let treeWrapper=this.content.querySelector(".storageTree");
 			let locationbar=this.content.querySelector(".locationbar");
 			this.locateInput=this.content.querySelector("input[data-action='locate']");
+			this.showMarkedButton=this.content.querySelector("[data-action='showMarked']");
 
 			this.tree=new SC.Tree([],(element,entry)=>
 			{
@@ -92,13 +97,20 @@
 						return date.toLocaleString(undefined,{hour:"2-digit",minute:"2-digit",second:"2-digit"})+" "+date.toLocaleString(undefined,{year:"numeric",month:"2-digit",day:"2-digit"});
 					}
 				}
-			],{noInput:true,control:true});
+			],{
+				noInput:true,
+				control:true,
+				body:{
+					rowStyle:(entry)=>
+					{
+						if(this.markedPaths.get(this.getCurrentPath()).has(entry.name)) return "marked";
+						return "";
+					}
+				}
+			});
 			this.table=new SC.Table(tableConfig);
 			contentWrapper.appendChild(this.table.getTable());
 			contentWrapper.addEventListener("dblclick",this._onContentDblClick);
-
-			this.showMarkedButton=this.content.querySelector(".showMarked");
-			this.markedStructures=new Set();
 
 			SC.action(this.actions, this.content,this,["click","change"]);
 		},
@@ -199,11 +211,6 @@
 				root=SC.Structure.fromJSON(root);
 				target=SC.NodePatch.traverseTo(root,rootPath,{key:"name"});
 
-				this.table.clear();
-				let content=Array.from(target.children);
-				content.sort(SC.Organizer.attributeSort(["type","name"]));
-				this.table.add(content);
-
 				this.ignorePathChange=true;
 				let data=this.data.slice();
 				if(storage)
@@ -214,6 +221,12 @@
 				data.unshift(root);
 				this.pathMenu.setData(data);
 				this.pathMenu.setActive(target);
+
+				this.table.clear();
+				let content=Array.from(target.children);
+				content.sort(SC.Organizer.attributeSort(["type","name"]));
+				this.table.add(content);
+
 				return true;
 			})
 			.catch(error=>
@@ -239,6 +252,12 @@
 			let root=this._getStorage(entry);
 			path[0]=root.name+" ("+path[0]+")";
 			return path.join("/");
+		},
+		getMarkedCount()
+		{
+			let count=0;
+			for(let paths of this.markedPaths.values()) count+=paths.size;
+			return count;
 		},
 		_onTreeDblClick(event)
 		{
@@ -274,7 +293,7 @@
 			while(top.parent) top=top.parent;
 			return this.structureToStorageMap.get(top);
 		},
-		_onLocateFocus()
+		getCurrentPath()
 		{
 			let active=this.pathMenu.getActive();
 			let storage;
@@ -287,7 +306,11 @@
 				if(i===0&&storage) return storage.path;
 				return s.name;
 			});
-			this.locateInput.value=path.join("/");
+			return path.join("/");
+		},
+		_onLocateFocus()
+		{
+			this.locateInput.value=this.getCurrentPath()
 		},
 		_onLocateChange()
 		{
@@ -316,14 +339,58 @@
 			},
 			markSelection()
 			{
-				this.table.getSelected().forEach(this.selectedStructures.add,this.selectedStructures);
-				this.showMarkedButton.dataset.count=this.selectedStructures.size;
+				let marked=this.markedPaths.get(this.getCurrentPath());
+				this.table.getSelected().forEach(entry=>
+				{
+					marked.add(entry.name);
+					this.table.change(entry).classList.add("marked");
+				});
+				this.showMarkedButton.dataset.marked=this.getMarkedCount();
 			},
 			showMarked()
 			{
-				this.selectedStructures.clear();
-				this.selectedButton.dataset.count=0;
-				this.selectedMenu.innerHTML="";
+				let dlg=new SC.Dialog(
+				`<h1>marked</h1>
+				<button data-action="clear">clear</button>
+				<table>
+					<thead>
+						<tr>
+							<th>directory</th>
+							<th>name</th>
+							<th></th>
+						</tr>
+					</thead>
+					<tbody>
+						${Array.from(this.markedPaths.keys()).filter(k=>this.markedPaths.keys.length==0).sort().map(directory=>
+							Array.from(this.markedPaths.get(directory)).sort().map(name=>
+								`<tr><td class="directory">${directory}</td><td class="name">${name}</td><td><div data-action="remove">❌</div></td></tr>`
+							).join("\n")
+						).join("")}
+					</tbody>
+				</table>
+				<button data-action="close">ok</button>`,
+				{
+					modal:true,
+					actions:{
+						remove:(e)=>
+						{
+							let row=e.target.closest("tr");
+							let directory=row.querySelector(".directory").textContent;
+							let name=row.querySelector(".name").textContent;
+							this.markedPaths.get(directory).delete(name);
+							this.showMarkedButton.dataset.marked=this.getMarkedCount();
+							row.remove();
+							this.table.update();
+						},
+						clear:()=>
+						{
+							this.markedPaths.clear();
+							this.showMarkedButton.dataset.marked=this.getMarkedCount();
+							dlg.content.querySelector("tbody").innerHTML="";
+							this.table.update();
+						}
+					}
+				});
 			},
 			copy()
 			{
@@ -346,6 +413,10 @@
 			},
 			move()
 			{
+			},
+			storageConfig()
+			{
+				debugger;
 			}
 		}
 	});

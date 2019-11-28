@@ -5,12 +5,25 @@
 	@directoryIconEmpty:"🗂";
 	@fileIcon:"📄";
 
+	.action() {
+		text-align:center;
+		font-size:130%;
+		background-color:@primaryColor;
+		background-repeat:no-repeat;
+		background-position: 50% 50%;
+		padding:.2ex;
+		border: 1px solid @ternaryColor;
+		border-radius:.5ex;
+		cursor: pointer;
+	}
+
 	height: 100%;
 	display:grid;
 	grid-template:~'
 		"bar				bar		"	auto
 		"actions			actions	"	auto
 		"search				content	"	auto
+		"storageConfig		content	"	auto
 		"tree				content	"	1fr
 		 / fit-content(50%)		auto';
 
@@ -23,12 +36,29 @@
 		.PathMenu {
 			order:-1;
 		}
-		[data-action="locate"] {
+		label {
 			flex: 1 0 0;
+			input {
+				width:100%;
+				font-size:1em;
+				box-sizing: border-box;
+				opacity:0;
+				&:focus {
+					opacity:1;
+				}
+			}
+		}
+
+		&:focus-within .PathMenu:not(:focus-within) {
+			display:none;
 		}
 	}
 	[data-action="search"] {
 		grid-area: search;
+	}
+	[data-action="storageConfig"] {
+		grid-area: storageConfig;
+		.action();
 	}
 
 	.storageTree {
@@ -45,26 +75,24 @@
 
 		[data-action] {
 			margin:0 1ex;
-			font-size:130%;
-			background-color:@primaryColor;
-			background-repeat:no-repeat;
-			background-position: 50% 50%;
-			padding:.2ex;
-			border: 1px solid @ternaryColor;
-			border-radius:.5ex;
-			cursor: pointer;
+			.action();
 		}
-		[data-count]::after {
-			content: attr(data-count);
-			position: absolute;
-			right: 0;
-			bottom: 0;
-			background-color: @secondaryColor;
-			color: white;
-			font-weight: bolder;
-			border-radius: 100%;
-			padding: 0 .5ex;
-			transform: translate(25%,25%);
+		[data-action="showMarked"]
+		{
+			position:relative;
+			&::after {
+				content: attr(data-marked);
+				position: absolute;
+				right: 0;
+				bottom: 0;
+				background-color: @secondaryColor;
+				color: white;
+				font-size:50%;
+				font-weight: bolder;
+				border-radius: 100%;
+				padding: 0 .5ex;
+				transform: translate(50%,50%);
+			}
 		}
 	}
 	.content {
@@ -104,6 +132,11 @@
 		li[data-type="File"]>span::before {
 			margin-left: -1em;
 			content:@fileIcon;
+		}
+	}
+	.content {
+		.marked {
+			.zebra(spin(@ternaryColor,-135));
 		}
 	}
 }
