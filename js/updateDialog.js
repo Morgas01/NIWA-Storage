@@ -7,13 +7,13 @@
 
 	SMOD("updateDialog",function(name)
 	{
-		SC.request.json({
+		return SC.request.json({
 			url:"rest/storage/update",
 			data:JSON.stringify({name:name})
 		})
 		.then(function(data)
 		{
-			new SC.InputDialog(`
+			return new SC.InputDialog(`
 			<table class="updateDialog">
 				<thead>
 					<tr>

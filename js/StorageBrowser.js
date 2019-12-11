@@ -18,7 +18,9 @@
 		Organizer:"Organizer",
 		Structure:"Structure",
 		NodePatch:"NodePatch",
-		Dialog:"gui.Dialog"
+		Dialog:"gui.Dialog",
+		StorageConfigDialog:"StorageConfigDialog",
+		JobListDialog:"JobListDialog"
 	});
 
 	let StorageBrowser=µ.Class({
@@ -37,6 +39,7 @@
 					<div data-action="move">move</div>
 					<div data-action="markSelection" accesskey="s">mark selected</div>
 					<div data-action="showMarked" accesskey="m" data-selected="0" data-marked="0">marked</div>
+					<div data-action="jobs" accesskey="j">jobs</div>
 				</div>
 				<input type="text" data-action="search">
 				<div data-action="storageConfig">config</div>
@@ -396,16 +399,20 @@
 			{
 				let target=this.pathMenu.getActive();
 				if(target==null) return;
+				let structure=this._getStorage(target);
 
 				let data={
-					structures:SC.register(1,()=>[]),
-					target:target.getPath(),
-					targetStorage:this._getStorage(target).name
+					paths:[],
+					target:this.getCurrentPath(),
+					targetStorage:structure?structure.name:null
 				};
-				this.selectedStructures.forEach(s=>
+				for (let [key,entries] of this.markedPaths.entries())
 				{
-					data.structures[this._getStorage(s).name].push(s.getPath());
-				});
+					for(let entry of entries)
+					{
+						data.paths.push(key+"/"+entry);
+					}
+				};
 				SC.request({
 					url:"rest/actions/copy",
 					data:JSON.stringify(data)
@@ -416,7 +423,11 @@
 			},
 			storageConfig()
 			{
-				debugger;
+				new SC.StorageConfigDialog(this.data);
+			},
+			jobs()
+			{
+				new SC.JobListDialog();
 			}
 		}
 	});

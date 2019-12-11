@@ -8,6 +8,7 @@
 		storageManager:require.bind(null,"./storageManager"),
 		Promise:"Promise",
 		es:"errorSerializer",
+    	niwaAppWorkDir:"niwaAppWorkDir",
 		caught:"caught"
 	});
 
@@ -22,9 +23,9 @@
 
 	let jobManager={
 		jobs:[],
-		copyToDirectory(structures,target,targetStorage)
+		copyToDirectory(paths,target,targetStorage)
 		{
-			let job=new SC.Job({ID:nextJobID++,name:"copy to "+targetStorage+"/"+target.join("/"),action:"copy",structures,target,targetStorage});
+			let job=new SC.Job({ID:nextJobID++,name:"copy to "+target,action:"copy",paths,target,targetStorage});
 			this.jobs.push(job);
 			updateJob("add",job);
 			this._trigger();
@@ -60,24 +61,19 @@
 			updateJob("start",job);
 
 			let targetStorage=SC.storageManager.get(job.targetStorage);
-			let targetDir=new SC.File(targetStorage.path).changePath(...job.target);
+			let targetDir=new SC.File(SC.niwaAppWorkDir).changePath(job.target);
 			return SC.fileUtil.enshureDir(targetDir)
 			.then(async ()=>
 			{
 				µ.logger.debug("target dir exists");
-				let todo=[];
-				for(let name in job.structures)
+				let todo=job.paths.map(path=>
 				{
-					let storage=SC.storageManager.get(name);
-					for(let path of job.structures[name])
-					{
-						let file=new SC.File(storage.path).changePath(...path);
-						todo.push({
-							source:file,
-							target:targetDir.clone().changePath(file.getName())
-						});
+					let source=new SC.File(SC.niwaAppWorkDir).changePath(path);
+					return {
+						source,
+						target:targetDir.clone().changePath(source.getName())
 					}
-				}
+				});
 
 				for(let i=0;i<todo.length;i++)
 				{
@@ -102,7 +98,7 @@
 				{
 					job.setProgress(job.progressMax-todo.length);
 					let {source,target}=todo.shift();
-					job.addMessage("copying "+source.getAbsolutePath());
+					job.addMessage(`copying ${source.getAbsolutePath()} to ${target.getAbsolutePath()}`);
 					updateJob("message",job);
 					try
 					{

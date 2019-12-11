@@ -10,11 +10,11 @@ module.exports={
 	{
 		if(!param.data)
 		{
-			return new SC.ServiceResult({status:400,data:'post: {structures:{[ID]:[paths]},target:path,targetStorage:"name"}'});
+			return new SC.ServiceResult({status:400,data:'post: {paths:[paths],target:path,targetStorage:"name"}'});
 		}
 		else
 		{
-			return jobManager.copyToDirectory(param.data.structures,param.data.target,param.data.targetStorage);
+			return jobManager.copyToDirectory(param.data.paths,param.data.target,param.data.targetStorage);
 		}
 	}
 };

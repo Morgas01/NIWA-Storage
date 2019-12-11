@@ -7,7 +7,7 @@
 
 	SMOD("addStorageDialog",function()
 	{
-		new SC.InputDialog(`
+		return new SC.InputDialog(`
 		<div class="addStorageDialog">
         	<label><span>Name</span><input name="name" type="text" required autofocus></label>
         	<label><span>Path</span><input name="path" type="text" required></label>

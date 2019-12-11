@@ -15,7 +15,7 @@
 	});
 
 	let STORAGE_ROTATION=10;
-	let REQUEST_TIMEOUT=120000;
+	let UPDATE_TIMEOUT=120000;
 
 	let storages=new Map();
 	let warnings=new Map();
@@ -123,7 +123,7 @@
 			}
 			else
 			{
-				return new SC.File(path).exists()
+				return storageFolder.clone().changePath(path).exists()
 				.then(function()
 				{
 					path=this.getAbsolutePath();
@@ -159,7 +159,7 @@
 				request.timer=setTimeout(function()
 				{
 					pendingRequest.delete(request.token);
-				},REQUEST_TIMEOUT);
+				},UPDATE_TIMEOUT);
 			}
 			return {token:request.token,compare:compare};
 		},

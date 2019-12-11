@@ -1,4 +1,20 @@
-#jobs {
+.JobListDialog {
+	min-width:50vw;
+	min-height:50vh;
+	max-width:95vw;
+	max-height:95vh;
+
+	display:flex;
+	flex-direction:column;
+	.jobs {
+		flex:1 0 0;
+		overflow:auto;
+		padding:1px; /*compensate table border*/
+	}
+	&>button {
+		align-self:start;
+	}
+
 	table {
 		border-collapse:collapse;
 		width:100%;
@@ -29,6 +45,14 @@
 		.time {
 			flex: 0 1 0;
 			white-space:nowrap;
+		}
+		.crc-error {
+			background-color:red;
+			color:white;
+		}
+		&.has-crc-error::before {
+			color:red;
+			content:"⚠";
 		}
 	}
 	progress {

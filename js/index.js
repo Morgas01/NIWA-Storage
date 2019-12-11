@@ -9,7 +9,6 @@
 		StorageBrowser:"StorageBrowser",
 		blocked:"gui.blocked",
 		loading:"gui.loading",
-		jobList:"jobList"
 	});
 
 	let sort=new Intl.Collator(navigator.languages,{sensitivity:"base"}).compare
@@ -20,7 +19,6 @@
 
 	let storageTable;
 	let browser;
-	let jobList;
 
 
 	request.json("rest/storage/warnings").then(warnings=>
@@ -29,9 +27,6 @@
 
 		browser=new SC.StorageBrowser([]);
 		document.body.appendChild(browser.content);
-
-		jobList=SC.jobList;
-		jobList.connect();
 
 		return updateStorages();
 	})
@@ -51,5 +46,7 @@
 			browser.setData(data);
 		});
 	};
+
+	SMOD("index"); //suppress warning
 
 })(Morgas,Morgas.setModule,Morgas.getModule,Morgas.hasModule,Morgas.shortcut);
