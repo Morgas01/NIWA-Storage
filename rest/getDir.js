@@ -9,6 +9,7 @@
 		ServiceResult:"ServiceResult",
 		storageManager:require.bind(null,"../util/storageManager"),
     	niwaAppWorkDir:"niwaAppWorkDir",
+    	NodePatch:"NodePatch"
 	});
 
 	module.exports=async function(param)
@@ -33,9 +34,13 @@
 			let found=storages.find(s=>s.name===param.data.storage);
 			if(found)
 			{
+				let pathSteps=path.slice(found.path.length+1).split(SC.File.separator);
+				if(pathSteps[0]==="") pathSteps.shift();
+				if(pathSteps[pathSteps.length-1]==="") pathSteps.pop();
+				let dir=SC.NodePatch.traverseTo(found.structure,pathSteps,{key:"name"});
 				return {
 					path,
-					content:SC.NodePatch.traverseTo(found.structure,path.slice(found.path.length+1),{key:"name",separator:SC.File.separator}),
+					content:dir.children,
 					storages:[found.name]
 				};
 			}
