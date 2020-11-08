@@ -15,7 +15,8 @@ module.exports={
 		}
 		else
 		{
-			return SC.storageManager.add(param.data.name,param.data.path);
+			let data=JSON.parse(param.data);
+			return SC.storageManager.add(data.name,data.path);
 		}
 	},
 	warnings:function()

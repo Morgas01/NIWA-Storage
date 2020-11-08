@@ -1,5 +1,5 @@
 {
-	"name":"NIWA-Storage",
+	"name": "NIWA-Storage",
 	"license": "MIT",
 	"version": "0.1.0",
 	"repository": {
@@ -8,5 +8,12 @@
 	},
 	"niwa": {
 		"setup": "niwaSetup"
+	},
+	"devDependencies": {
+		"concat-with-sourcemaps": "^1.1.0",
+		"gulp": "^4.0.2",
+		"gulp-less": "^4.0.1",
+		"morgas": "^0.8.9",
+		"morgas.gui": "^0.8.4"
 	}
 }

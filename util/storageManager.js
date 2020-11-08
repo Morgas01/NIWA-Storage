@@ -10,7 +10,6 @@
 		getStructureTree:require.bind(null,"./getStructureTree"),
 		Node:"NodePatch",
 		compare:"NodePatch.Compare",
-    	niwaAppWorkDir:"niwaAppWorkDir",
 		ServiceResult:"ServiceResult",
 	});
 
@@ -20,7 +19,7 @@
 	let storages=new Map();
 	let warnings=new Map();
 	let pendingRequest=new Map();
-	let storageFolder=new SC.File(SC.niwaAppWorkDir);
+	let storageFolder=new SC.File(worker.shed);
 
 	//scan and load storages
 	let initialized=storageFolder.listFiles()

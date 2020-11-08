@@ -6,6 +6,6 @@
 out/
 target/
 node_modules/
-build/
 *.log
 storages/
+js/build.js
