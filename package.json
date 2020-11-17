@@ -6,6 +6,11 @@
 		"type": "git",
 		"url": "https://github.com/Morgas01/NIWA-Storage.git"
 	},
+	"scripts": {
+		"build": "gulp build",
+		"watch": "gulp watch",
+		"prepare": "gulp build"
+	},
 	"niwa": {
 		"setup": "niwaSetup"
 	},

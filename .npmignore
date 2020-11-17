@@ -8,5 +8,9 @@ target/
 node_modules/
 *.log
 storages/
-build.js
-css/
+
+js/
+less/
+buildTools/
+gulpfile.js
+package-lock.json

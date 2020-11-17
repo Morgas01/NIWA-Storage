@@ -2,7 +2,7 @@ let gulp=require("gulp");
 let tasks={
 	less:function(){
 		let less=require("gulp-less");
-		Morgas=false;
+		require("morgas");
 		return gulp.src('less/index.less')
 		.pipe(less({
 			paths: [ require("morgas.gui").lessFolder ]
@@ -15,13 +15,15 @@ let tasks={
 		let manager=require("./buildTools/dependencyManager")(["js","lib"]);
 
 		let merged=await manager.get("js/index.js");
-		console.log(merged);
-		return fs.writeFile("js/build.js",merged);
+		return fs.writeFile("build.js",merged);
 	},
 };
-tasks.build=function()
+tasks.build=gulp.parallel(tasks.less,tasks.js);
+
+tasks.watch=function()
 {
-	return gulp.series(tasks.less,tasks.js);
+	gulp.watch('less/index.less',{cwd: __dirname, ignoreInitial: false},tasks.less);
+	gulp.watch(["js//*.js","lib//*.js",],{cwd: __dirname, ignoreInitial: false},tasks.js);
 };
 
 module.exports=tasks;

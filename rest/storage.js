@@ -29,10 +29,15 @@ module.exports={
 	},
 	update:function(param)
 	{
-		let storage=SC.storageManager.get(param.data.name)
+		if(!param.data)
+		{
+			return new SC.ServiceResult({status:400,data:'post: {name:"string"}'});
+		}
+		let data=JSON.parse(param.data);
+		let storage=SC.storageManager.get(data.name);
 		if(!storage)
 		{
-			return new SC.ServiceResult({status:400,data:`storage ${param.data.name} does not exist`});
+			return new SC.ServiceResult({status:400,data:`storage ${data.name} does not exist`});
 		}
 		else
 		{
@@ -44,7 +49,12 @@ module.exports={
 		switch(param.path[0])
 		{
 			case "update":
-				return SC.storageManager.confirmUpdate(param.data.token);
+				if(!param.data)
+				{
+					return new SC.ServiceResult({status:400,data:'post: {token:"string"}'});
+				}
+				let data=JSON.parse(param.data);
+				return SC.storageManager.confirmUpdate(data.token);
 			default:
 				return new SC.ServiceResult({status:400,data:`cannot confirm ${param.path[0]}`});
 		}
@@ -52,14 +62,19 @@ module.exports={
 	getDir:function(param)
 	{
 
-		let storage=SC.storageManager.get(param.data.name)
+		if(!param.data)
+		{
+			return new SC.ServiceResult({status:400,data:'post: {name:"string",path:"string"}'});
+		}
+		let data=JSON.parse(param.data);
+		let storage=SC.storageManager.get(data.name);
 		if(!storage)
 		{
-			return new SC.ServiceResult({status:400,data:`storage ${param.data.name} does not exist`});
+			return new SC.ServiceResult({status:400,data:`storage ${data.name} does not exist`});
 		}
 		else
 		{
-			return SC.storageManager.getDir(storage,param.data.path);
+			return SC.storageManager.getDir(storage,data.path);
 		}
 	}
 };
