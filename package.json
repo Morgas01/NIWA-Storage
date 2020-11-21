@@ -11,9 +11,6 @@
 		"watch": "gulp watch",
 		"prepare": "gulp build"
 	},
-	"niwa": {
-		"setup": "niwaSetup"
-	},
 	"devDependencies": {
 		"concat-with-sourcemaps": "^1.1.0",
 		"gulp": "^4.0.2",
