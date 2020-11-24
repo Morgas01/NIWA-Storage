@@ -22,7 +22,8 @@
 	let storageFolder=new SC.File(worker.shed);
 
 	//scan and load storages
-	let initialized=storageFolder.listFiles()
+	let initialized=SC.util.enshureDir(storageFolder)
+	.then(()=>storageFolder.listFiles())
 	.then(files=>
 	{
 		files=files.filter(f=>/\.json$/.test(f));
