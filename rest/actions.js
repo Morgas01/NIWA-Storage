@@ -14,7 +14,8 @@ module.exports={
 		}
 		else
 		{
-			return jobManager.copyToDirectory(param.data.paths,param.data.target,param.data.targetStorage);
+			let data=JSON.parse(param.data);
+			return jobManager.copyToDirectory(data.paths,data.target,data.targetStorage);
 		}
 	}
 };

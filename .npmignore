@@ -11,6 +11,8 @@ storages/
 
 js/
 less/
+rest/dependencies.js
+index2.html
 buildTools/
 gulpfile.js
 package-lock.json

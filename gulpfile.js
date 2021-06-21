@@ -11,10 +11,24 @@ let tasks={
 	},
 	async js()
 	{
-		let fs=require("fs").promises;
-		let manager=require("./buildTools/dependencyManager")(["js","lib"]);
+		require("morgas");
+		let DependencyManager=µ.getModule("DependencyManager");
+		let manager=new DependencyManager();
+		manager.addSources(["js","lib"]);
 
-		let merged=await manager.get("js/index.js");
+		let gui=require("morgas.gui");
+		manager.addPackage({
+			name:"morgas.gui",
+			basePath:gui.dirname,
+			moduleDependencies:µ.getModule("Morgas.gui.ModuleDependencies"),
+			moduleRegister:µ.getModule("Morgas.gui.ModuleRegister")
+		});
+
+		let files=await manager.resolve("js/index.js");
+		let fs=require("fs").promises;
+		let contents=await Promise.all(files.map(f=>fs.readFile(f,"utf8")));
+		merged=contents.join("\n/********************/\n");
+
 		return fs.writeFile("build.js",merged);
 	},
 };

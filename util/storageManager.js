@@ -27,7 +27,7 @@
 	.then(files=>
 	{
 		files=files.filter(f=>/\.json$/.test(f));
-		µ.logger.info("Scanned files : %j", files);
+		worker.logger.info("Scanned files : %j", files);
 		files=files.map(function(file)
 		{
 			file=storageFolder.clone().changePath(file);
@@ -37,7 +37,7 @@
 				if(result.others.length>0)
 				{
 					let errors=result.others.map(other=>({error:SC.es(other.error),file:other.file.getAbsolutePath()}));
-					µ.logger.warn({errors:errors},"errors loading file "+file.getAbsolutePath());
+					worker.logger.warn({errors:errors},"errors loading file "+file.getAbsolutePath());
 					warnings.set(file.getName(),errors);
 				}
 				storages.set(result.data.name,result.data);
@@ -45,12 +45,12 @@
 			function(errors)
 			{
 				errors=errors.map(other=>({error:SC.es(other.error),file:other.file.getAbsolutePath()}));
-				µ.logger.warn({errors:errors},"could not load any file");
+				worker.logger.warn({errors:errors},"could not load any file");
 				warnings.set(file.getName(),errors);
 			});
 		});
 		return Promise.all(files);
-	}).catch(µ.logger.error);
+	}).catch(worker.logger.error);
 
 	let structureCompare=function(a,b)
 	{
